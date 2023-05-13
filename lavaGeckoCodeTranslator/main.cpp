@@ -3,6 +3,8 @@
 
 int main()
 {
-	std::cout << "HelloWorld";
+	lava::ppc::buildInstructionDictionary();
+	lava::gecko::buildGeckoCodeDictionary();
+	lava::translateFile("./Junk/codeset.txt", "_conv", 1);
 	return 0;
 }
