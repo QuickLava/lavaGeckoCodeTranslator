@@ -5,6 +5,24 @@ namespace lava
 {
 	const std::string allowedNonHexChars = " \t*";
 
+	bool dumpTranslationBuffer(std::stringstream& translationBuffer, std::ostream& outputStream)
+	{
+		bool result = 0;
+
+		// If there is code to convert
+		std::streampos bytesToTranslate = translationBuffer.tellp();
+		if (bytesToTranslate > 0)
+		{
+			result = 1;
+
+			translationBuffer.seekg(0);
+			lava::gecko::parseGeckoCode(outputStream, translationBuffer, bytesToTranslate);
+			translationBuffer.str("");
+			translationBuffer.clear();
+		}
+
+		return result;
+	}
 	bool translateFile(std::istream& inputStream, std::ostream& outputStream)
 	{
 		bool result = 0;
@@ -16,30 +34,14 @@ namespace lava
 			std::string commentString("");
 			std::size_t commentStartLoc = SIZE_MAX;
 			// Holds code to be translated.
-			std::stringstream translationBufferIn("");
-			// Holds result of translation.
-			std::stringstream translationBufferOut("");
+			std::stringstream translationBuffer("");
 
 			while (std::getline(inputStream, currentLine))
 			{
 				// Disregard the current line if it's empty, or is marked as a comment
 				if (currentLine.empty())
 				{
-					// If there is code to convert
-					std::streampos bytesToTranslate = translationBufferIn.tellp();
-					if (bytesToTranslate > 0)
-					{
-						translationBufferIn.seekg(0);
-						translationBufferOut.str("");
-						translationBufferOut.clear();
-						lava::gecko::parseGeckoCode(translationBufferOut, translationBufferIn, bytesToTranslate);
-						while (std::getline(translationBufferOut, currentLine))
-						{
-							outputStream << currentLine << "\n";
-						}
-						translationBufferIn.str("");
-						translationBufferIn.clear();
-					}
+					dumpTranslationBuffer(translationBuffer, outputStream);
 					outputStream << "\n";
 				}
 				else if (currentLine[0] != '#' && currentLine[0] != '/')
@@ -70,7 +72,7 @@ namespace lava
 					{
 						if (codeString.size() % 8 == 0)
 						{
-							translationBufferIn << codeString;
+							translationBuffer << codeString;
 						}
 						else
 						{
@@ -79,6 +81,7 @@ namespace lava
 					}
 					else
 					{
+						dumpTranslationBuffer(translationBuffer, outputStream);
 						outputStream << currentLine << "\n";
 					}
 				}
