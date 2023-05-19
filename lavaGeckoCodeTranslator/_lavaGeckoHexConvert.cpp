@@ -6,8 +6,8 @@ namespace lava::gecko
 	// Constants
 	constexpr unsigned long signatureBaPoMask = 0x10000000;
 	constexpr unsigned long signatureAddressMask = 0x1FFFFFF;
-	constexpr unsigned long signatureAddressBase = 0x80000000;
 	const std::string withEndifString = " (With Endif)";
+	const std::set<std::string> disallowedMnemonics = {"mfspr", "mtspr"};
 
 	// Dynamic Values
 	// These are used to try to keep track of BA and PO so they can be used in GCTRM syntax instructions.
@@ -26,6 +26,10 @@ namespace lava::gecko
 	{
 		currentBAValue = ULONG_MAX;
 	}
+	void resetBAValue()
+	{
+		currentBAValue = 0x80000000;
+	}
 	bool validateCurrentPOValue()
 	{
 		return currentPOValue != ULONG_MAX;
@@ -33,6 +37,10 @@ namespace lava::gecko
 	void invalidateCurrentPOValue()
 	{
 		currentPOValue = ULONG_MAX;
+	}
+	void resetPOValue()
+	{
+		currentPOValue = 0x80000000;
 	}
 	bool validateGeckoRegister(unsigned char regIndex)
 	{
@@ -57,6 +65,68 @@ namespace lava::gecko
 
 		return result;
 	}
+	void invalidateAllGeckoRegisters()
+	{
+		geckoRegisters.fill(ULONG_MAX);
+	}
+	void resetParserDynamicValues()
+	{
+		resetBAValue();
+		resetPOValue();
+		invalidateAllGeckoRegisters();
+	}
+
+	// Data Embed Detection
+	// These are used to track locations where raw hex data may be embedded in the code stream.
+	// Parsing these as code can lead to bad times™, so we need to ensure we skip them wherever
+	// possible, hence this system. Core idea is: as we process 46/4E codes, we check if they're
+	// specifying an offset that might be signalling an embed. If so, we flag that location as a
+	// potential embed to look out for. From there, we look out for any GOTO codes which occur just
+	// before the suspected embed statement; and, if we find one, we know we've reached an embed, and
+	// we can dump it next go round of the parser, and continue translation from there.
+	unsigned short detectedDataEmbedLineCount = 0;
+	bool didBAPOStoreToAddressWhileSuspectingEmbed = 0;
+	std::set<unsigned long> suspectedEmbedLocations{};
+	std::set<unsigned long> activeGotoEndLocations{};
+	void removeExpiredLocationsFromSet(unsigned long currentStreamLocation, std::set<unsigned long>& targetSet)
+	{
+		for (auto i = targetSet.begin(); i != targetSet.end();)
+		{
+			if (*i <= currentStreamLocation)
+			{
+				i = targetSet.erase(i);
+			}
+			else
+			{
+				// The locations are sorted in ascending order, lowest first
+				// If a given number in the list is higher than our current location,
+				// everything after it is guaranteed higher as well.
+				break;
+			}
+		}
+	}
+	void removeExpiredEmbedSuspectLocations(unsigned long currentStreamLocation)
+	{
+		removeExpiredLocationsFromSet(currentStreamLocation, suspectedEmbedLocations);
+	}
+	void removeExpiredGotoEndLocations(unsigned long currentStreamLocation)
+	{
+		removeExpiredLocationsFromSet(currentStreamLocation, activeGotoEndLocations);
+	}
+	// Gecko Loop Tracking
+	std::stack<unsigned long> activeRepeatStartLocations{};
+	void resetParserTrackingValues()
+	{
+		detectedDataEmbedLineCount = 0;
+		didBAPOStoreToAddressWhileSuspectingEmbed = 0;
+		suspectedEmbedLocations.clear();
+		activeGotoEndLocations.clear();
+		while (!activeRepeatStartLocations.empty())
+		{
+			activeRepeatStartLocations.pop();
+		}
+	}
+
 
 	// Utility
 	unsigned long getAddressFromCodeSignature(unsigned long codeSignatureIn)
@@ -94,7 +164,7 @@ namespace lava::gecko
 	{
 		std::string result = "";
 
-		unsigned char executionCondition = (codeSignatureIn & 0x000F0000) >> 0x10;
+		unsigned char executionCondition = (codeSignatureIn & 0x00F00000) >> 0x14;
 		switch (executionCondition)
 		{
 		case 0: { result = "If Exec Status is True"; break; }
@@ -109,7 +179,15 @@ namespace lava::gecko
 	void printStringWithComment(std::ostream& outputStream, const std::string& primaryString, const std::string& commentString, bool printNewLine = 1, unsigned long relativeCommentLoc = 0x20)
 	{
 		unsigned long originalFlags = outputStream.flags();
-		outputStream << std::left << std::setw(relativeCommentLoc) << primaryString << "# " << commentString;
+		if (!commentString.empty())
+		{
+			std::size_t indentationLevel = activeRepeatStartLocations.size();
+			outputStream << std::left << std::setw(relativeCommentLoc) << primaryString << "# " << std::string(indentationLevel, '\t') << commentString;
+		}
+		else
+		{
+			outputStream << primaryString;
+		}
 		if (printNewLine)
 		{
 			outputStream << "\n";
@@ -122,6 +200,47 @@ namespace lava::gecko
 		result.str("");
 		printStringWithComment(result, primaryString, commentString, 0, relativeCommentLoc);
 		return result.str();
+	}
+	std::size_t dumpUnannotatedHexToStream(std::istream& codeStreamIn, std::ostream& output, std::size_t linesToDump, std::string commentStr = "")
+	{
+		std::size_t result = 0;
+
+		if (linesToDump > 0)
+		{
+			bool startingNewLine = 1;
+
+			// Buffer for reading in bytes from stream.
+			std::string dumpStr("");
+			dumpStr.reserve(8);
+
+			// Output first line, with comment:
+			std::string outputString("");
+			lava::readNCharsFromStream(dumpStr, codeStreamIn, 0x8, 0);
+			outputString = "* " + dumpStr;
+			lava::readNCharsFromStream(dumpStr, codeStreamIn, 0x8, 0);
+			outputString += " " + dumpStr;
+			printStringWithComment(output, outputString, commentStr, 1);
+
+			result += 0x10;
+			std::size_t bytesToDump = linesToDump * 0x10;
+			while (result < bytesToDump)
+			{
+				if (startingNewLine)
+				{
+					output << "*";
+				}
+				lava::readNCharsFromStream(dumpStr, codeStreamIn, 0x8, 0);
+				output << " " << dumpStr;
+				if (!startingNewLine)
+				{
+					output << "\n";
+				}
+				startingNewLine = !startingNewLine;
+				result += 0x8;
+			}
+		}
+
+		return result;
 	}
 
 	std::string convertPPCInstructionHex(unsigned long hexIn, bool enableComment)
@@ -290,13 +409,20 @@ namespace lava::gecko
 					unsigned char currCharacter = UCHAR_MAX;
 					if (stringCurrentlyOpen)
 					{
-						commentString << "...";
+						commentString << "... ";
 					}
 					for (unsigned long u = 0; (u < 8) && ((u + cursor) < immNum); u++)
 					{
 						currCharacter = bytesToWrite[u + cursor];
 						if ((stringCurrentlyOpen && currCharacter == 0x00) || (!stringCurrentlyOpen && currCharacter != 0x00))
 						{
+							// If we're starting a string on an empty line, and there are enough characters
+							// left to output to fill spill over into the next line...
+							if (!stringCurrentlyOpen && u == 0 && ((immNum - cursor) > 8))
+							{
+								// ... print some spaces before the line to align it with the rest of the string.
+								commentString << "   ";
+							}
 							commentString << "\"";
 							stringCurrentlyOpen = !stringCurrentlyOpen;
 						}
@@ -316,7 +442,7 @@ namespace lava::gecko
 							}
 							else
 							{
-								commentString << "...";
+								commentString << " ...";
 							}
 						}
 						else
@@ -507,6 +633,9 @@ namespace lava::gecko
 			printStringWithComment(outputStreamIn, outputString, commentString.str(), 1);
 
 			result = codeStreamIn.tellg() - initialPos;
+
+			// Lastly, signal that we've entered a Repeat block.
+			activeRepeatStartLocations.push(initialPos);
 		}
 
 		return result;
@@ -535,6 +664,10 @@ namespace lava::gecko
 			// Build and Print Line
 			outputString = "* " + signatureWord + " " + immWord;
 			commentString << codeTypeIn->name << ": Execute Repeat in b" << (immNum & 0xF);
+
+			// Before we print, signal that we're leaving a Repeat block (before print to un-indent this line).
+			activeRepeatStartLocations.pop();
+
 			printStringWithComment(outputStreamIn, outputString, commentString.str(), 1);
 
 			result = codeStreamIn.tellg() - initialPos;
@@ -590,6 +723,8 @@ namespace lava::gecko
 			unsigned long signatureNum = lava::stringToNum<unsigned long>(signatureWord, 0, ULONG_MAX, 1);
 			unsigned long immNum = lava::stringToNum<unsigned long>(immWord, 0, ULONG_MAX, 1);
 
+			unsigned char executionCondition = (signatureNum & 0x00F00000) >> 0x14;
+
 			// Initialize Strings For Output
 			std::string outputString("");
 			std::stringstream commentString("");
@@ -620,6 +755,43 @@ namespace lava::gecko
 			printStringWithComment(outputStreamIn, outputString, commentString.str(), 1);
 
 			result = codeStreamIn.tellg() - initialPos;
+
+			// If we've arrived at a GOTO that skips forwards...
+			if ((codeTypeIn->secondaryCodeType == 6) && (lineOffset > 0))
+			{
+				unsigned long currentGotoEndLocation = unsigned long(codeStreamIn.tellg()) + (lineOffset * 0x10);
+				// ... and we're currently suspecting a data embed...
+				if (!suspectedEmbedLocations.empty())
+				{
+					// ... check if this GOTO corresponds to a suspected Data Embed location.
+					if (suspectedEmbedLocations.find(codeStreamIn.tellg()) != suspectedEmbedLocations.end())
+					{
+						// If so, signal the number of lines the embed takes up so we can dump it.
+						detectedDataEmbedLineCount = unsigned short(lineOffset);
+					}
+					// Otherwise, if we've done a BAPO store since we established our suspicion...
+					else if (didBAPOStoreToAddressWhileSuspectingEmbed)
+					{
+						// ... AND this GOTO would take us *past* a suspected embed location...
+						if (currentGotoEndLocation > *suspectedEmbedLocations.begin())
+						{
+							// ... also signal, as this is probably an embed as well.
+							detectedDataEmbedLineCount = unsigned short(lineOffset);
+						}
+					}
+				}
+				// The only other situation under which we can expect we're looking at an embed is if this Goto
+				// is set to activate regardles of the current Execution Status, AND we can be sure that there isn't another
+				// Goto that would land us within the region skipped by this potential embed Goto. If both of those conditiosn are true...
+				else if ((executionCondition == 2) && (activeGotoEndLocations.empty() || (currentGotoEndLocation < *activeGotoEndLocations.begin())))
+				{
+					// ... signal that we've reached an embed.
+					detectedDataEmbedLineCount = unsigned short(lineOffset);
+				}
+
+				// Finally, record the expected end location for this Goto, it'll be removed once we pass it.
+				activeGotoEndLocations.insert(currentGotoEndLocation);
+			}
 		}
 
 		return result;
@@ -840,7 +1012,7 @@ namespace lava::gecko
 				}
 			}
 			// Else, if this is a Store Mode codetype...
-			else if (setLoadStoreMode == 6)
+			else if (setLoadStoreMode == 4)
 			{
 				// ... build Store Mode comment string.
 				commentStr << "Val @ $(" << setLoadStoreString.str() << ") = ";
@@ -859,6 +1031,76 @@ namespace lava::gecko
 			printStringWithComment(outputStreamIn, outputStr, commentStr.str(), 1);
 
 			result = codeStreamIn.tellg() - initialPos;
+
+			// If we're performing a BAPO store, and we're currently suspecting an embed somewhere...
+			if (setLoadStoreMode == 4 && !suspectedEmbedLocations.empty())
+			{
+				// ... and we're either not using BAPO in the address calculation, or at least aren't using the one we're storing...
+				if ((bapoAdd == UCHAR_MAX) || (bool(signatureNum & signatureBaPoMask) != bool(bapoAdd)))
+				{
+					// ... note that it's occurred; this is an extra hint that we're approaching an embed.
+					didBAPOStoreToAddressWhileSuspectingEmbed = 1;
+				}
+			}
+		}
+
+		return result;
+	}
+	std::size_t gecko464ECodeConv(geckoCodeType* codeTypeIn, std::istream& codeStreamIn, std::ostream& outputStreamIn)
+	{
+		std::size_t result = SIZE_MAX;
+
+		if (codeStreamIn.good() && outputStreamIn.good())
+		{
+			std::streampos initialPos = codeStreamIn.tellg();
+
+			std::string signatureWord("");
+			std::string immWord("");
+
+			lava::readNCharsFromStream(signatureWord, codeStreamIn, 8, 0);
+			lava::readNCharsFromStream(immWord, codeStreamIn, 8, 0);
+
+			unsigned long signatureNum = lava::stringToNum<unsigned long>(signatureWord, 0, ULONG_MAX, 1);
+			unsigned long immNum = lava::stringToNum<unsigned long>(immWord, 0, ULONG_MAX, 1);
+			signed short addressOffset = static_cast<signed short>(signatureNum & 0xFFFF);
+
+			std::string outputStr = "* " + signatureWord + " " + immWord;
+			std::stringstream commentStr("");
+			commentStr << codeTypeIn->name << ": ";
+			// If we're setting BA
+			if ((signatureNum & signatureBaPoMask) == 0)
+			{
+				commentStr << "ba";
+				// We won't know the value for this, so invalidate.
+				invalidateCurrentBAValue();
+			}
+			// If we're setting PO
+			else
+			{
+				commentStr << "po";
+				// Same as above, we won't know the value, so we invalidate.
+				invalidateCurrentPOValue();
+			}
+			commentStr << " = (Next Code Address)";
+			if (addressOffset > 0)
+			{
+				commentStr << " + " << addressOffset;
+			}
+			else if (addressOffset < 0)
+			{
+				commentStr << " - " << -addressOffset;
+			}
+
+			printStringWithComment(outputStreamIn, outputStr, commentStr.str(), 1);
+
+			result = codeStreamIn.tellg() - initialPos;
+
+			// If this offset is both properly aligned and large enough to be used for a Data Embed...
+			if (addressOffset >= 0x8 && (addressOffset % 0x8) == 0)
+			{
+				// ... report the suspected data location so we can check for it later.
+				suspectedEmbedLocations.insert(unsigned long(codeStreamIn.tellg()) + (addressOffset * 2));
+			}
 		}
 
 		return result;
@@ -1173,7 +1415,197 @@ namespace lava::gecko
 
 		return result;
 	}
-	std::size_t geckoC2CodeConv(geckoCodeType* codeTypeIn, std::istream& codeStreamIn, std::ostream& outputStreamIn)
+	std::size_t geckoMemoryCopyCodeConv(geckoCodeType* codeTypeIn, std::istream& codeStreamIn, std::ostream& outputStreamIn)
+	{
+		std::size_t result = SIZE_MAX;
+
+		if (codeStreamIn.good() && outputStreamIn.good())
+		{
+			std::streampos initialPos = codeStreamIn.tellg();
+
+			std::string signatureWord("");
+			std::string immWord("");
+
+			lava::readNCharsFromStream(signatureWord, codeStreamIn, 8, 0);
+			lava::readNCharsFromStream(immWord, codeStreamIn, 8, 0);
+
+			unsigned long signatureNum = lava::stringToNum<unsigned long>(signatureWord, 0, ULONG_MAX, 1);
+			unsigned long immNum = lava::stringToNum<unsigned long>(immWord, 0, ULONG_MAX, 1);
+
+			unsigned short numBytesToCopy = (signatureNum & 0x00FFFF00) >> 0x8;
+			bool immSideIndex = codeTypeIn->secondaryCodeType == 0xA;
+			// 0 is left hand side, 1 is right hand side
+			std::array<unsigned char, 2> leftRightHandReg = { (signatureNum & 0xF0) >> 0x4,  signatureNum & 0x0F };
+			// 0 is left hand side, 1 is right hand side
+			std::array<std::stringstream, 2> leftRightHandStr{};
+
+			std::string outputStr = "* " + signatureWord + " " + immWord;
+			std::stringstream commentStr("");
+			commentStr << codeTypeIn->name << ": Copy 0x" << lava::numToHexStringWithPadding(numBytesToCopy, 0) << " byte(s) from ";
+
+			leftRightHandStr[!immSideIndex] << "$(gr" << +leftRightHandReg[!immSideIndex] << ")";
+			leftRightHandStr[immSideIndex] << "$(";
+			if (leftRightHandReg[immSideIndex] == 0xF)
+			{
+				if ((signatureNum & signatureBaPoMask) == 0)
+				{
+					leftRightHandStr[immSideIndex] << "ba";
+				}
+				else
+				{
+					leftRightHandStr[immSideIndex] << "po";
+				}
+			}
+			else
+			{
+				leftRightHandStr[immSideIndex] << "gr" << +leftRightHandReg[immSideIndex];
+			}
+			if (immNum)
+			{
+				leftRightHandStr[immSideIndex] << " + 0x" << lava::numToHexStringWithPadding(immNum, 8);
+			}
+			leftRightHandStr[immSideIndex] << ")";
+			
+			commentStr << leftRightHandStr[0].str() << " to " << leftRightHandStr[1].str();
+
+			printStringWithComment(outputStreamIn, outputStr, commentStr.str(), 1);
+
+			result = codeStreamIn.tellg() - initialPos;
+		}
+
+		return result;
+	}
+	std::size_t geckoRegisterIfCodeConv(geckoCodeType* codeTypeIn, std::istream& codeStreamIn, std::ostream& outputStreamIn)
+	{
+		std::size_t result = SIZE_MAX;
+
+		if (codeStreamIn.good() && outputStreamIn.good())
+		{
+			std::streampos initialPos = codeStreamIn.tellg();
+
+			std::string signatureWord("");
+			std::string immWord("");
+
+			lava::readNCharsFromStream(signatureWord, codeStreamIn, 8, 0);
+			lava::readNCharsFromStream(immWord, codeStreamIn, 8, 0);
+
+			unsigned long signatureNum = lava::stringToNum<unsigned long>(signatureWord, 0, ULONG_MAX, 1);
+			unsigned long immNum = lava::stringToNum<unsigned long>(immWord, 0, ULONG_MAX, 1);
+
+			// 0 is left hand side, 1 is right hand side
+			std::array<unsigned char, 2> leftRightHandReg = { (immNum & 0x0F000000) >> 0x18,  (immNum & 0xF0000000) >> 0x1C };
+			// 9 is left hand side, 1 is right hand side
+			std::array<std::stringstream, 2> leftRightHandStr{};
+			// Value Mask
+			unsigned short valueMask = immNum & 0xFFFF;
+
+			// Prepare strings for each side.
+			for (unsigned long i = 0; i < 2; i++)
+			{
+				leftRightHandStr[i] << "Val @ ";
+				// If we're using BAPO for this reg...
+				if (leftRightHandReg[i] == 0xF)
+				{
+					// ... use component string.
+					leftRightHandStr[i] << getAddressComponentString(signatureNum) << " ";
+				}
+				// Otherwise...
+				else
+				{
+					// ... just print geck reg.
+					leftRightHandStr[i] << "$(gr" << +leftRightHandReg[i] << ") ";
+				}
+				// And apply value mask if necessary.
+				if (valueMask != 0)
+				{
+					leftRightHandStr[i] << "& 0x" << lava::numToHexStringWithPadding<unsigned short>(~valueMask, 4) << " ";
+				}
+			}
+
+			std::string outputStr = "* " + signatureWord + " " + immWord;
+			std::stringstream commentStr("");
+			commentStr << codeTypeIn->name;
+			if (signatureNum & 1)
+			{
+				commentStr << withEndifString;
+			}
+			
+			commentStr << ": " << leftRightHandStr[0].str() << " ";
+			switch (codeTypeIn->secondaryCodeType % 8)
+			{
+			case 0: { commentStr << "=="; break; }
+			case 2: { commentStr << "!="; break; }
+			case 4: { commentStr << ">"; break; }
+			case 6: { commentStr << "<"; break; }
+			default: {break; }
+			}
+			commentStr << " " << leftRightHandStr[1].str();
+
+			printStringWithComment(outputStreamIn, outputStr, commentStr.str(), 1);
+
+			result = codeStreamIn.tellg() - initialPos;
+		}
+
+		return result;
+	}
+	std::size_t geckoCounterIfCodeConv(geckoCodeType* codeTypeIn, std::istream& codeStreamIn, std::ostream& outputStreamIn)
+	{
+		std::size_t result = SIZE_MAX;
+
+		if (codeStreamIn.good() && outputStreamIn.good())
+		{
+			std::streampos initialPos = codeStreamIn.tellg();
+
+			std::string signatureWord("");
+			std::string immWord("");
+
+			lava::readNCharsFromStream(signatureWord, codeStreamIn, 8, 0);
+			lava::readNCharsFromStream(immWord, codeStreamIn, 8, 0);
+
+			unsigned long signatureNum = lava::stringToNum<unsigned long>(signatureWord, 0, ULONG_MAX, 1);
+			unsigned long immNum = lava::stringToNum<unsigned long>(immWord, 0, ULONG_MAX, 1);
+
+			bool resetCountIfTrue = signatureNum & 0x8;
+
+			std::string outputStr = "* " + signatureWord + " " + immWord;
+
+			std::stringstream commentStr("");
+			commentStr << codeTypeIn->name;
+			if (signatureNum & 1)
+			{
+				commentStr << withEndifString;
+				signatureNum &= ~1;
+			}
+			commentStr << ": If 0x" << lava::numToHexStringWithPadding<unsigned short>(immNum & 0xFFFF, 4);
+			if ((immNum >> 0x10) != 0)
+			{
+				commentStr << " & 0x" << lava::numToHexStringWithPadding<unsigned short>(~(immNum >> 0x10), 4);
+			}
+			commentStr << " ";
+
+			switch (codeTypeIn->secondaryCodeType % 8)
+			{
+			case 0: { commentStr << "=="; break; }
+			case 2: { commentStr << "!="; break; }
+			case 4: { commentStr << ">"; break; }
+			case 6: { commentStr << "<"; break; }
+			default: {break; }
+			}
+
+			commentStr << " Counter, Execute";
+			if (resetCountIfTrue)
+			{
+				commentStr << " (and Reset Counter to Zero)";
+			}
+
+			printStringWithComment(outputStreamIn, outputStr, commentStr.str(), 1);
+
+			result = codeStreamIn.tellg() - initialPos;
+		}
+
+		return result;
+	}
+	std::size_t geckoASMOutputodeConv(geckoCodeType* codeTypeIn, std::istream& codeStreamIn, std::ostream& outputStreamIn)
 	{
 		std::size_t result = SIZE_MAX;
 
@@ -1190,35 +1622,113 @@ namespace lava::gecko
 			unsigned long signatureNum = lava::stringToNum<unsigned long>(signatureWord, 0, ULONG_MAX, 1);
 			unsigned long lengthNum = lava::stringToNum<unsigned long>(lengthWord, 0, ULONG_MAX, 1);
 			
-			unsigned long inferredHookAddress = getAddressFromCodeSignature(signatureNum);
-			bool canDoGCTRMOutput = inferredHookAddress != ULONG_MAX;
-
+			bool canDoGCTRMOutput = 0;
+			unsigned char codeTypeHex = ((unsigned char)codeTypeIn->primaryCodeType << 4) | codeTypeIn->secondaryCodeType;
 			std::string hexWord("");
 			std::string conversion("");
 			std::string outputString("");
 			std::stringstream commentString("");
+
+			// Handle codetype-unique output needs:
+			switch (codeTypeHex)
+			{
+			case 0xC0:
+			{
+				canDoGCTRMOutput = 1;
+				outputStreamIn << "PULSE\n";
+				break;
+			}
+			case 0xC2:
+			{
+				unsigned long inferredHookAddress = getAddressFromCodeSignature(signatureNum);
+				canDoGCTRMOutput = inferredHookAddress != ULONG_MAX;
+				if (canDoGCTRMOutput)
+				{
+					outputString = "HOOK @ $" + lava::numToHexStringWithPadding(inferredHookAddress, 8);
+					commentString << "Address = " << getAddressComponentString(signatureNum);
+					printStringWithComment(outputStreamIn, outputString, commentString.str(), 1);
+				}
+				else
+				{
+					outputString = "* " + signatureWord + " " + lengthWord;
+					commentString << codeTypeIn->name << " (" << lengthNum << " line(s)) @ " << getAddressComponentString(signatureNum) << ":";
+					printStringWithComment(outputStreamIn, outputString, commentString.str(), 1);
+				}
+				break;
+			}
+			case 0xF2:
+			case 0xF4:
+			{
+				canDoGCTRMOutput = 0;
+				// These codes actually embed extra information in what normally is the length parameter.
+				// So, we need to get that info...
+				unsigned short checksum = (lengthNum >> 8) & 0xFFFF;
+				signed char valueCount = static_cast<unsigned char>(lengthNum >> 0x18);
+				// Then zero out all but the bottom 8 bits of the number (for use in the code output for loop later).
+				lengthNum &= 0xFF;
+				// This codetype also accesses PO in a slightly weird way; it can't set the normal BaPo
+				// bit to do it, so it instead sets the codetype to 0xF4. So, just for the sake of grabbing
+				// the address string in a way consistent with everything else, we unset the bapo bit then
+				// set it ourselves if the PO codetype is used.
+				unsigned long adjustedSignatureNum = signatureNum & ~signatureBaPoMask;
+				if (codeTypeHex == 0xF4)
+				{
+					adjustedSignatureNum |= signatureBaPoMask;
+				}
+				outputString = "* " + signatureWord + " " + lengthWord;
+				commentString << codeTypeIn->name << ": If XORing the " << std::abs(valueCount) << " Half-Words";
+				if (valueCount > 0)
+				{
+					commentString << " Following";
+				}
+				else
+				{
+					commentString << " Preceding";
+				}
+				commentString << " " << getAddressComponentString(adjustedSignatureNum) << " == 0x" << lava::numToHexStringWithPadding(checksum, 4) << ":";
+				printStringWithComment(outputStreamIn, outputString, commentString.str(), 1);
+				break;
+			}
+			default:
+			{
+				break;
+			}
+			}
+
+			// Handle rest of PPC output:
 			if (canDoGCTRMOutput)
 			{
-				outputString = "HOOK @ $" + lava::numToHexStringWithPadding(inferredHookAddress, 8);
-				commentString << "Address = " << getAddressComponentString(signatureNum);
-				printStringWithComment(outputStreamIn, outputString, commentString.str(), 1);
 				outputStreamIn << "{\n";
-				for (unsigned long i = 0; i < lengthNum * 2; i++)
+				bool mnemDisallowed = 0;
+				unsigned long convertedHex = ULONG_MAX;
+				unsigned long instructionsToConvert = lengthNum * 2;
+				for (unsigned long i = 0; i < instructionsToConvert; i++)
 				{
 					lava::readNCharsFromStream(hexWord, codeStreamIn, 8, 0);
+					convertedHex = lava::stringToNum<unsigned long>(hexWord, 0, ULONG_MAX, 1);
 					conversion = convertPPCInstructionHex(hexWord, 1);
-					if (!conversion.empty())
+					// Note: GCTRM doesn't properly support m[tf]spr's numeric SPR arguments, so for now, I'm including a check
+					// to ensure that these are output un-converted; hopefully this can be undone eventually. This is also set up
+					// to easily allow more mnemonics to be disallowed, though this won't be needed ideally.
+					mnemDisallowed = disallowedMnemonics.find(conversion.substr(0, conversion.find(' '))) != disallowedMnemonics.end();
+					// So, if we converted the instruction successfully, and the resulting mnemonic isn't disallowed...
+					if (!conversion.empty() && !mnemDisallowed)
 					{
+						// ... output the conversion.
 						outputStreamIn << "\t" << conversion << "\n";
+					}
+					// Otherwise, so long as the instruction isn't 0x00000000, or (if it is), isn't the final instruction in the code...
+					else if ((convertedHex != 0x00000000) || ((i + 1) < instructionsToConvert))
+					{
+						// ... output it as a word embed.
+						outputStreamIn << "\t";
+						printStringWithComment(outputStreamIn, "word 0x" + hexWord, conversion, 1);
 					}
 				}
 				outputStreamIn << "}\n";
 			}
 			else
 			{
-				outputString = "* " + signatureWord + " " + lengthWord;
-				commentString << codeTypeIn->name << " (" << lengthNum << " line(s)) @ " << getAddressComponentString(signatureNum) << ":";
-				printStringWithComment(outputStreamIn, outputString, commentString.str(), 1);
 				for (unsigned long i = 0; i < lengthNum; i++)
 				{
 					commentString.str("");
@@ -1227,6 +1737,7 @@ namespace lava::gecko
 					outputString = "* " + hexWord + " ";
 					commentString << "\t";
 					conversion = convertPPCInstructionHex(hexWord, 0);
+					commentString << std::left << std::setw(0x18);
 					if (!conversion.empty())
 					{
 						commentString << conversion;
@@ -1253,6 +1764,38 @@ namespace lava::gecko
 				}
 			}
 			
+
+			result = codeStreamIn.tellg() - initialPos;
+		}
+
+		return result;
+	}
+	std::size_t geckoC6CodeConv(geckoCodeType* codeTypeIn, std::istream& codeStreamIn, std::ostream& outputStreamIn)
+	{
+		std::size_t result = SIZE_MAX;
+
+		if (codeStreamIn.good() && outputStreamIn.good())
+		{
+			std::streampos initialPos = codeStreamIn.tellg();
+
+			std::string signatureWord("");
+			std::string immWord("");
+
+			lava::readNCharsFromStream(signatureWord, codeStreamIn, 8, 0);
+			lava::readNCharsFromStream(immWord, codeStreamIn, 8, 0);
+
+			unsigned long signatureNum = lava::stringToNum<unsigned long>(signatureWord, 0, ULONG_MAX, 1);
+			unsigned long immNum = lava::stringToNum<unsigned long>(immWord, 0, ULONG_MAX, 1);
+
+			// Initialize Strings For Output
+			std::string outputString("");
+			std::stringstream commentString("");
+
+			// Output First Line
+			outputString = "* " + signatureWord + " " + immWord;
+			commentString << codeTypeIn->name << " @ " << getAddressComponentString(signatureNum) << ": b 0x" << lava::numToHexStringWithPadding(immNum, 8);
+			
+			printStringWithComment(outputStreamIn, outputString, commentString.str(), 1);
 
 			result = codeStreamIn.tellg() - initialPos;
 		}
@@ -1402,6 +1945,48 @@ namespace lava::gecko
 
 		return result;
 	}
+	std::size_t geckoF6CodeConv(geckoCodeType* codeTypeIn, std::istream& codeStreamIn, std::ostream& outputStreamIn)
+	{
+		std::size_t result = SIZE_MAX;
+
+		if (codeStreamIn.good() && outputStreamIn.good())
+		{
+			std::streampos initialPos = codeStreamIn.tellg();
+
+			std::string signatureWord("");
+			std::string immWord("");
+
+			lava::readNCharsFromStream(signatureWord, codeStreamIn, 8, 0);
+			lava::readNCharsFromStream(immWord, codeStreamIn, 8, 0);
+
+			unsigned long signatureNum = lava::stringToNum<unsigned long>(signatureWord, 0, ULONG_MAX, 1);
+			unsigned long immNum = lava::stringToNum<unsigned long>(immWord, 0, ULONG_MAX, 1);
+
+			// Number of lines to search for
+			unsigned char lineCount = signatureNum & 0xFF;
+			unsigned long searchRegionStart = immNum & 0xFFFF0000;
+			if (searchRegionStart == 0x80000000)
+			{
+				searchRegionStart =  0x80003000;
+			}
+			unsigned long searchRegionEnd = immNum << 0x10;
+
+			// Print first line:
+			std::string outputStr = "* " + signatureWord + " " + immWord;
+			std::stringstream commentStr("");
+			commentStr << codeTypeIn->name << ": Search for Following " << +lineCount << " line(s) between " <<
+				"$" << lava::numToHexStringWithPadding(searchRegionStart, 8) << " and "
+				"$" << lava::numToHexStringWithPadding(searchRegionEnd, 8);
+			printStringWithComment(outputStreamIn, outputStr, commentStr.str(), 1);
+
+			// Dump remaining lines:
+			dumpUnannotatedHexToStream(codeStreamIn, outputStreamIn, lineCount, "\tSearch Criteria:");
+
+			result = codeStreamIn.tellg() - initialPos;
+		}
+
+		return result;
+	}
 	std::size_t geckoNameOnlyCodeConv(geckoCodeType* codeTypeIn, std::istream& codeStreamIn, std::ostream& outputStreamIn)
 	{
 		std::size_t result = SIZE_MAX;
@@ -1495,9 +2080,11 @@ namespace lava::gecko
 			currentCodeType = currentCodeTypeGroup->pushInstruction("Load Base Address", 0x0, geckoSetLoadStoreAddressCodeConv);
 			currentCodeType = currentCodeTypeGroup->pushInstruction("Set Base Address", 0x2, geckoSetLoadStoreAddressCodeConv);
 			currentCodeType = currentCodeTypeGroup->pushInstruction("Store Base Address", 0x4, geckoSetLoadStoreAddressCodeConv);
+			currentCodeType = currentCodeTypeGroup->pushInstruction("Put Next Code Loc in BA", 0x6, gecko464ECodeConv);
 			currentCodeType = currentCodeTypeGroup->pushInstruction("Load Pointer Offset", 0x8, geckoSetLoadStoreAddressCodeConv);
 			currentCodeType = currentCodeTypeGroup->pushInstruction("Set Pointer Offset", 0xA, geckoSetLoadStoreAddressCodeConv);
 			currentCodeType = currentCodeTypeGroup->pushInstruction("Store Pointer Offset", 0xC, geckoSetLoadStoreAddressCodeConv);
+			currentCodeType = currentCodeTypeGroup->pushInstruction("Put Next Code Loc in PO", 0xE, gecko464ECodeConv);
 		}
 		currentCodeTypeGroup = pushPrTypeGroupToDict(geckoPrimaryCodeTypes::gPCT_FlowControl);
 		{
@@ -1514,26 +2101,46 @@ namespace lava::gecko
 			currentCodeType = currentCodeTypeGroup->pushInstruction("Store Gecko Register", 0x4, geckoLoadStoreGeckoRegCodeConv);
 			currentCodeType = currentCodeTypeGroup->pushInstruction("Gecko Reg Arith (Immediate)", 0x6, geckoRegisterArithCodeConv);
 			currentCodeType = currentCodeTypeGroup->pushInstruction("Gecko Reg Arith", 0x8, geckoRegisterArithCodeConv);
+			currentCodeType = currentCodeTypeGroup->pushInstruction("Memory Copy 1", 0xA, geckoMemoryCopyCodeConv);
+			currentCodeType = currentCodeTypeGroup->pushInstruction("Memory Copy 2", 0xC, geckoMemoryCopyCodeConv);
+		}
+		currentCodeTypeGroup = pushPrTypeGroupToDict(geckoPrimaryCodeTypes::gPCT_RegAndCounterIf);
+		{
+			currentCodeType = currentCodeTypeGroup->pushInstruction("Gecko Reg 16-Bit If Equal", 0x0, geckoRegisterIfCodeConv);
+			currentCodeType = currentCodeTypeGroup->pushInstruction("Gecko Reg 16-Bit If Not Equal", 0x2, geckoRegisterIfCodeConv);
+			currentCodeType = currentCodeTypeGroup->pushInstruction("Gecko Reg 16-Bit If Greater", 0x4, geckoRegisterIfCodeConv);
+			currentCodeType = currentCodeTypeGroup->pushInstruction("Gecko Reg 16-Bit If Lesser", 0x6, geckoRegisterIfCodeConv);
+			currentCodeType = currentCodeTypeGroup->pushInstruction("Counter 16-Bit If Equal", 0x8, geckoCounterIfCodeConv);
+			currentCodeType = currentCodeTypeGroup->pushInstruction("Counter 16-Bit If Not Equal", 0xA, geckoCounterIfCodeConv);
+			currentCodeType = currentCodeTypeGroup->pushInstruction("Counter 16-Bit If Greater", 0xC, geckoCounterIfCodeConv);
+			currentCodeType = currentCodeTypeGroup->pushInstruction("Counter 16-Bit If Lesser", 0xE, geckoCounterIfCodeConv);
 		}
 		currentCodeTypeGroup = pushPrTypeGroupToDict(geckoPrimaryCodeTypes::gPCT_Assembly);
 		{
-			currentCodeType = currentCodeTypeGroup->pushInstruction("Insert ASM", 0x2, geckoC2CodeConv);
+			currentCodeType = currentCodeTypeGroup->pushInstruction("Execute ASM", 0x0, geckoASMOutputodeConv);
+			currentCodeType = currentCodeTypeGroup->pushInstruction("Insert ASM", 0x2, geckoASMOutputodeConv);
+			currentCodeType = currentCodeTypeGroup->pushInstruction("Create Branch", 0x6, geckoC6CodeConv);
 			currentCodeType = currentCodeTypeGroup->pushInstruction("On/Off Switch", 0xC, geckoNameOnlyCodeConv);
 			currentCodeType = currentCodeTypeGroup->pushInstruction("Address Range Check", 0xE, geckoCECodeConv);
 		}
 		currentCodeTypeGroup = pushPrTypeGroupToDict(geckoPrimaryCodeTypes::gPCT_Misc);
 		{
-			currentCodeType = currentCodeTypeGroup->pushInstruction("Full Terminator", 0, geckoE0CodeConv);
-			currentCodeType = currentCodeTypeGroup->pushInstruction("Endif", 2, geckoE2CodeConv);
+			currentCodeType = currentCodeTypeGroup->pushInstruction("Full Terminator", 0x0, geckoE0CodeConv);
+			currentCodeType = currentCodeTypeGroup->pushInstruction("Endif", 0x2, geckoE2CodeConv);
 		}
 		currentCodeTypeGroup = pushPrTypeGroupToDict(geckoPrimaryCodeTypes::gPCT_EndOfCodes);
 		{
-			currentCodeType = currentCodeTypeGroup->pushInstruction("End of Codes", 0, geckoNameOnlyCodeConv);
+			currentCodeType = currentCodeTypeGroup->pushInstruction("End of Codes", 0x0, geckoNameOnlyCodeConv);
+			currentCodeType = currentCodeTypeGroup->pushInstruction("Insert ASM w/ Checksum", 0x2, geckoASMOutputodeConv);
+			// PO variant of above codetype, since it can't use the normal PO bit to do that.
+			currentCodeType = currentCodeTypeGroup->pushInstruction("Insert ASM w/ Checksum", 0x4, geckoASMOutputodeConv);
+			currentCodeType = currentCodeTypeGroup->pushInstruction("If Search, Set Pointer", 0x6, geckoF6CodeConv);
 		}
 
 		return;
 	}
 
+	
 	geckoCodeType* findRelevantGeckoCodeType(unsigned char primaryType, unsigned char secondaryType)
 	{
 		geckoCodeType* result = nullptr;
@@ -1550,7 +2157,7 @@ namespace lava::gecko
 
 		return result;
 	}
-	std::size_t parseGeckoCode(std::ostream& output, std::istream& codeStreamIn, std::size_t expectedLength)
+	std::size_t parseGeckoCode(std::ostream& output, std::istream& codeStreamIn, std::size_t expectedLength, bool resetDynamicValues, bool resetTrackingValues)
 	{
 		std::size_t result = SIZE_MAX;
 
@@ -1562,15 +2169,46 @@ namespace lava::gecko
 			unsigned char currCodePrType = UCHAR_MAX;
 			unsigned char currCodeScType = UCHAR_MAX;
 
+			if (resetDynamicValues)
+			{
+				resetParserDynamicValues();
+			}
+			if (resetTrackingValues)
+			{
+				resetParserTrackingValues();
+			}
+
 			std::string codeTypeStr("");
 			geckoCodeType* targetedGeckoCodeType = nullptr;
-			while (result < expectedLength)
+			while (codeStreamIn.good() && result < expectedLength)
 			{
+				if (detectedDataEmbedLineCount > 0x00)
+				{
+					result += dumpUnannotatedHexToStream(codeStreamIn, output, detectedDataEmbedLineCount, 
+						"DATA_EMBED (0x" + lava::numToHexStringWithPadding(detectedDataEmbedLineCount * 0x8, 0) + " bytes)");
+					detectedDataEmbedLineCount = 0;
+					continue;
+				}
+				removeExpiredEmbedSuspectLocations(codeStreamIn.tellg());
+				if (suspectedEmbedLocations.empty())
+				{
+					didBAPOStoreToAddressWhileSuspectingEmbed = 0;
+				}
+				removeExpiredGotoEndLocations(codeStreamIn.tellg());
+
 				lava::readNCharsFromStream(codeTypeStr, codeStreamIn, 2, 1);
 
-				currCodeType = lava::stringToNum<unsigned long>(codeTypeStr, 1, UCHAR_MAX, 1);
-				currCodePrType = (currCodeType & 0b11100000) >> 4;	// First hex digit (minus bit 4) is primary code type.
-				currCodeScType = (currCodeType & 0b00001110);		// Second hex digit (minus bit 8) is secondary code type.
+				currCodeType = lava::stringToNum<unsigned char>(codeTypeStr, 1, UCHAR_MAX, 1);
+				if (currCodeType < 0xF0)
+				{
+					currCodePrType = (currCodeType & 0b11100000) >> 4;	// First hex digit (minus bit 4) is primary code type.
+					currCodeScType = (currCodeType & 0b00001110);		// Second hex digit (minus bit 8) is secondary code type.
+				}
+				else
+				{
+					currCodePrType = (currCodeType & 0b11110000) >> 4;	// First hex digit (including bit 4, 0xF is special) is primary code type.
+					currCodeScType = (currCodeType & 0b00001110);		// Second hex digit (minus bit 8) is secondary code type.
+				}
 
 				targetedGeckoCodeType = findRelevantGeckoCodeType(currCodePrType, currCodeScType);
 				if (targetedGeckoCodeType != nullptr)
@@ -1579,24 +2217,8 @@ namespace lava::gecko
 				}
 				else
 				{
-					bool startingNewLine = 1;
-					std::string dumpStr = "";
-					dumpStr.reserve(8);
-					while (result < expectedLength)
-					{
-						if (startingNewLine)
-						{
-							output << "*";
-						}
-						lava::readNCharsFromStream(dumpStr, codeStreamIn, 0x8, 0);
-						output << " " << dumpStr;
-						if (!startingNewLine)
-						{
-							output << "\n";
-						}
-						startingNewLine = !startingNewLine;
-						result += 0x8;
-					}
+					result += dumpUnannotatedHexToStream(codeStreamIn, output, (expectedLength - result) / 0x10,
+						"UNRECOGNIZED CODETYPE, Parsing Aborted");
 				}
 			}
 		}

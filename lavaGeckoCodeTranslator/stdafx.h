@@ -14,6 +14,7 @@
 // Containers
 #include <map>
 #include <set>
+#include <stack>
 #include <array>
 #include <vector>
 #include <string>

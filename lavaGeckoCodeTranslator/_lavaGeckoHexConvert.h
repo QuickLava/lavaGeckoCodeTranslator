@@ -22,6 +22,11 @@ namespace lava::gecko
 		gPCT_EndOfCodes = 0xF,
 	};
 
+	// Resets BA, PO, and Gecko Register values
+	void resetParserDynamicValues();
+	// Resets Loop, Goto, and Date Embed tracking values
+	void resetParserTrackingValues();
+
 	struct geckoCodeType;
 	std::size_t defaultGeckoCodeConv(geckoCodeType* codeTypeIn, std::istream& codeStreamIn, std::ostream& outputStreamIn);
 
@@ -48,10 +53,11 @@ namespace lava::gecko
 	extern std::map<unsigned char, geckoPrTypeGroup> geckoCodeDictionary;
 	geckoPrTypeGroup* pushPrTypeGroupToDict(geckoPrimaryCodeTypes opCodeIn);
 	void buildGeckoCodeDictionary();
+
 	geckoCodeType* findRelevantGeckoCodeType(unsigned char primaryType, unsigned char secondaryType);
-
-	std::size_t parseGeckoCode(std::ostream& output, std::istream& codeStreamIn, std::size_t expectedLength);
-
+	// If resetDynamicValues is set to 1, BA, PO, and Gecko Register values will be reset to their default states before parsing.
+	// If resetTrackingValues is set to 1, Loop, Goto, and Date Embed tracking values will also be reset before parsing.
+	std::size_t parseGeckoCode(std::ostream& output, std::istream& codeStreamIn, std::size_t expectedLength, bool resetDynamicValues, bool resetTrackingValues);
 }
 
 #endif

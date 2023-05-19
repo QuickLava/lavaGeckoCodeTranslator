@@ -729,7 +729,8 @@ namespace lava::ppc
 			result << ", r" << argumentsIn[3];
 			result << ", " << argumentsIn[4];
 			result << ", " << argumentsIn[5];
-			result << "    # (Mask: 0x" << getMaskFromMBMESH(MB, ME, 0) << ")";
+			result << std::string(std::max<signed long>(0x20 - result.tellp(), 0x00), ' ');
+			result << "# (Mask: 0x" << getMaskFromMBMESH(MB, ME, 0) << ")";
 		}
 
 		return result.str();
@@ -755,7 +756,8 @@ namespace lava::ppc
 			result << ", " << argumentsIn[3];
 			result << ", " << argumentsIn[4];
 			result << ", " << argumentsIn[5];
-			result << "    # (Mask: 0x" << getMaskFromMBMESH(MB, ME, SH) << ")";
+			result << std::string(std::max<signed long>(0x20 - result.tellp(), 0x00), ' ');
+			result << "# (Mask: 0x" << getMaskFromMBMESH(MB, ME, SH) << ")";
 		}
 
 		return result.str();
@@ -923,8 +925,8 @@ namespace lava::ppc
 		std::vector<unsigned long> argumentsIn = instructionIn->getArgLayoutPtr()->splitHexIntoArguments(hexIn);
 		if (argumentsIn.size() >= 5)
 		{
-			int shiftedSpReg = argumentsIn[2] >> 5;
-			switch (shiftedSpReg)
+			unsigned long flippedSpRegID = ((argumentsIn[2] & 0b11111) << 5) | (argumentsIn[2] >> 5);
+			switch (flippedSpRegID)
 			{
 			case 1:
 			{
@@ -943,7 +945,7 @@ namespace lava::ppc
 			}
 			default:
 			{
-				result << instructionIn->mnemonic << " " << argumentsIn[2] << ",";
+				result << instructionIn->mnemonic << " " << flippedSpRegID << ",";
 				break;
 			}
 			}
@@ -1679,17 +1681,20 @@ namespace lava::ppc
 		currLayout = defineArgLayout(asmInstructionArgLayout::aIAL_CMPW, { 0, 6, 9, 10, 11, 16, isSecOpArgFlag | 21, 31 }, cmpwConv); {
 			currLayout->setArgumentReservations({
 				{ 2, asmInstructionArgResStatus::aIARS_MUST_BE_ZERO },
+				{ 3, asmInstructionArgResStatus::aIARS_MUST_BE_ZERO },
 				{ -1, asmInstructionArgResStatus::aIARS_MUST_BE_ZERO },
 				});
 		}
 		currLayout = defineArgLayout(asmInstructionArgLayout::aIAL_CMPWI, { 0, 6, 9, 10, 11, 16 }, cmpwiConv); {
 			currLayout->setArgumentReservations({
 				{ 2, asmInstructionArgResStatus::aIARS_MUST_BE_ZERO },
+				{ 3, asmInstructionArgResStatus::aIARS_MUST_BE_ZERO },
 				});
 		}
 		currLayout = defineArgLayout(asmInstructionArgLayout::aIAL_CMPLWI, { 0, 6, 9, 10, 11, 16 }, cmplwiConv); {
 			currLayout->setArgumentReservations({
 				{ 2, asmInstructionArgResStatus::aIARS_MUST_BE_ZERO },
+				{ 3, asmInstructionArgResStatus::aIARS_MUST_BE_ZERO },
 				});
 		}
 		currLayout = defineArgLayout(asmInstructionArgLayout::aIAL_IntADDI, { 0, 6, 11, 16 }, integerAddImmConv);
