@@ -5,6 +5,16 @@ namespace lava
 {
 	const std::string allowedNonHexChars = " \t*";
 
+	std::string applyFilenameSuffix(std::string filepath, std::string suffix)
+	{
+		std::string result = "";
+
+		std::filesystem::path sourceFilePathObj(filepath);
+		result = sourceFilePathObj.parent_path().string() + "/" + sourceFilePathObj.stem().string() + suffix + sourceFilePathObj.extension().string();
+
+		return result;
+	}
+
 	bool dumpTranslationBuffer(std::stringstream& translationBuffer, std::ostream& outputStream)
 	{
 		bool result = 0;
@@ -16,7 +26,7 @@ namespace lava
 			result = 1;
 
 			translationBuffer.seekg(0);
-			lava::gecko::parseGeckoCode(outputStream, translationBuffer, bytesToTranslate);
+			lava::gecko::parseGeckoCode(outputStream, translationBuffer, bytesToTranslate, 0, 0);
 			translationBuffer.str("");
 			translationBuffer.clear();
 		}
@@ -25,7 +35,7 @@ namespace lava
 	}
 	bool translateFile(std::istream& inputStream, std::ostream& outputStream)
 	{
-		bool result = 0;
+		std::size_t outputStrInitialPos = outputStream.tellp();
 
 		if (inputStream.good() && outputStream.good())
 		{
@@ -35,6 +45,10 @@ namespace lava
 			std::size_t commentStartLoc = SIZE_MAX;
 			// Holds code to be translated.
 			std::stringstream translationBuffer("");
+
+			// For each file, reset dynamic and tracking values before translating.
+			lava::gecko::resetParserDynamicValues();
+			lava::gecko::resetParserTrackingValues();
 
 			while (std::getline(inputStream, currentLine))
 			{
@@ -90,9 +104,13 @@ namespace lava
 					outputStream << currentLine << "\n";
 				}
 			}
+			if (translationBuffer.tellp())
+			{
+				dumpTranslationBuffer(translationBuffer, outputStream);
+			}
 		}
 
-		return result;
+		return outputStrInitialPos < outputStream.tellp();
 	}
 	bool translateFile(std::string inputFilepath, std::string outputFilepath, bool useOutpathAsFilenameSuffix)
 	{
@@ -104,8 +122,7 @@ namespace lava
 		{
 			if (useOutpathAsFilenameSuffix)
 			{
-				std::filesystem::path sourceFilePathObj(inputFilepath);
-				outputFilepath = sourceFilePathObj.parent_path().string() + "/" + sourceFilePathObj.stem().string() + outputFilepath + sourceFilePathObj.extension().string();
+				outputFilepath = applyFilenameSuffix(inputFilepath, outputFilepath);
 			}
 
 			std::ofstream outputStream;
