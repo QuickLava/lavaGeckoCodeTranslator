@@ -84,12 +84,13 @@ namespace lava
 
 					if (!invalidHexCharFound)
 					{
-						if (codeString.size() % 8 == 0)
+						if (!codeString.empty() && codeString.size() % 8 == 0)
 						{
 							translationBuffer << codeString;
 						}
 						else
 						{
+							dumpTranslationBuffer(translationBuffer, outputStream);
 							outputStream << currentLine << "\n";
 						}
 					}
@@ -101,6 +102,7 @@ namespace lava
 				}
 				else
 				{
+					dumpTranslationBuffer(translationBuffer, outputStream);
 					outputStream << currentLine << "\n";
 				}
 			}
