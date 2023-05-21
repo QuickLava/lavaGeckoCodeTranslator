@@ -69,11 +69,14 @@ namespace lava::gecko
 	{
 		geckoRegisters.fill(ULONG_MAX);
 	}
-	void resetParserDynamicValues()
+	void resetParserDynamicValues(bool skipRegisterReset)
 	{
 		resetBAValue();
 		resetPOValue();
-		invalidateAllGeckoRegisters();
+		if (!skipRegisterReset)
+		{
+			invalidateAllGeckoRegisters();
+		}
 	}
 
 	// Data Embed Detection
@@ -2171,7 +2174,7 @@ namespace lava::gecko
 
 			if (resetDynamicValues)
 			{
-				resetParserDynamicValues();
+				resetParserDynamicValues(0);
 			}
 			if (resetTrackingValues)
 			{

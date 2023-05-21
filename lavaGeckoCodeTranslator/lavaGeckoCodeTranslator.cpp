@@ -47,7 +47,7 @@ namespace lava
 			std::stringstream translationBuffer("");
 
 			// For each file, reset dynamic and tracking values before translating.
-			lava::gecko::resetParserDynamicValues();
+			lava::gecko::resetParserDynamicValues(1);
 			lava::gecko::resetParserTrackingValues();
 
 			while (std::getline(inputStream, currentLine))
@@ -67,7 +67,8 @@ namespace lava
 					codeString.clear();
 					for (std::size_t i = 0; !invalidHexCharFound && i < currentLine.size() && i < commentStartLoc; i++)
 					{
-						currChar = currentLine[i];
+						// Convert to uppercase to make GCTRM directive parsing more consistent, see below.
+						currChar = std::toupper(currentLine[i]);
 						if (allowedNonHexChars.find(currChar) != std::string::npos)
 						{
 							// Do nothing.
@@ -78,6 +79,18 @@ namespace lava
 						}
 						else
 						{
+							// Some GCTRM directives relevant to our parsing start with periods, check for those:
+							if (currChar == '.')
+							{
+								// If we find a ".RESET" directive...
+								if (currentLine.find(".RESET", i) == i)
+								{
+									// ... ensure we reset BA and PO.
+									// Important cuz we have to keep track of those to ensure accurate locations for GCTRM
+									// syntax commands that require absolute addresses (HOOKS, RAM Writes, etc.).
+									lava::gecko::resetParserDynamicValues(1);
+								}
+							}
 							invalidHexCharFound = 1;
 						}
 					}

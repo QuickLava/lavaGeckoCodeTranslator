@@ -23,7 +23,7 @@ namespace lava::gecko
 	};
 
 	// Resets BA, PO, and Gecko Register values
-	void resetParserDynamicValues();
+	void resetParserDynamicValues(bool skipRegisterReset);
 	// Resets Loop, Goto, and Date Embed tracking values
 	void resetParserTrackingValues();
 
