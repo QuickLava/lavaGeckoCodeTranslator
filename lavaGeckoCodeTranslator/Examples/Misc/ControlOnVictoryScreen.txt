@@ -1,0 +1,17 @@
+Control Loser on victory screen [original by masterlinkx, ported by Link]
+C277A908 00000003
+2C1e0110 40820008
+3BC0010E 60000000
+93DD0038 00000000
+You can move your character if you lost the match.
+Out of screen => Wii crash
+
+Control Winner on victory screen [original by masterlinkx, ported by Link]
+C277A908 00000003
+2C1e010F 40820008
+3BC0010E 60000000
+93DD0038 00000000
+You can move your character if you won the match.
+Out of screen => Wii crash
+
+# Note: These codes hook the same location, and so probably won't work together.

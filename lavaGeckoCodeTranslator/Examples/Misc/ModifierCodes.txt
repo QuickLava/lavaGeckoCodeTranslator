@@ -1,0 +1,123 @@
+# Translation Note: In the translations here, notice that some lines here
+# doesn't get annotated, and aren't prefixed with "* ". That's because these kinds
+# of modifier codes where you need to change something in the code hex for them to work
+# sometimes mark the parts of the code you're meant to change with illegal hex characters,
+# which the translator can't parse, and so won't annotate or translate. Please be vigilant
+# keeping track of these kinds of codes when translating stuff.
+
+Face Any Which Way[Original by Phantom Wings]
+80000000 80623320
+80000001 00000000
+60000006 00000000
+60000003 00000001
+4A001000 00000000
+4A101001 00000000
+36000000 00000032
+58010000 00000004
+DE000000 80008180
+58010000 00000060
+58010000 00000018
+14000060 XXXXXXXX
+80100001 00000008
+62000000 00000001
+E2000002 00000000
+80000001 00000000
+80100000 00000244
+62000000 00000000
+E0000000 80008000
+
+XXXXXXXX Takes floating point values, more specifically, angles.
+If you use a number greater than 360 the game will subtract 360 until it is between 0 and
+360.
+For example, you put in 560, thats the same as putting in 200.(560 - 360 = 200)
+Just stay between 0 and 360.(360 and 0 produce the same effect)
+Here are some starter angles.
+
+0   = 00000000
+45  = 42340000
+90  = 42B40000
+135 = 43070000
+180 = 43340000
+225 = 43610000
+270 = 43870000
+315 = 439D8000
+360 = 43B40000
+
+
+
+Stage Modifier (The Stages with a Star work)
+4A000000 90180F08
+10000033 000000XX
+10000034 00000000
+E0000000 80008000
+
+Stage List
+The Stages with a Star work
+00 (0) - Battle
+*01 (1) - BattleField (Battlefield)
+*02 (2) - Final (Final Destination)
+*03 (3) - Dolpic (Delfino Plaza)
+*04 (4) - Mansion (Luigi's Mansion)
+*05 (5) - MarioPast (Mushroomy Kingdom)
+*06 (6) - Kart (Mario Circuit)
+*07 (7) - Donkey (75 m)
+*08 (8) - Jungle (Rumble Falls)
+*09 (9) - Pirates (Pirate Ship)
+*0A (10) - Zelda2 (Bridge of Eldin)
+*0B (11) - Norfair (Norfair)
+*0C (12) - Orpheon (Frigate Orpheon)
+*0D (13) - Crayon (Yoshi's Island)
+*0E (14) - Halberd (Halberd)
+0F (15) - TestHalberd_00
+10 (16) - TestHalberd_01
+11 (17) - TestHalberd_02
+12 (18) - Karby2
+*13 (19) - Starfox (Lylat Cruise)
+*14 (20) - Stadium (Pokémon Stadium 2)
+*15 (21) - Tengan (Spear Pillar)
+*16 (22) - Fzero (Port Town Aero Dive)
+*17 (23) - Ice (Summit)
+*18 (24) - Gw (Flat Zone 2)
+*19 (25) - Emblem (Castle Siege)
+1A (26) - TestEmblem_00
+1B (27) - TestEmblem_01
+*1C (28) - Madein (WarioWare, Inc.)
+*1D (29) - Earth (Distant Planet)
+*1E (30) - Palutena (Skyworld)
+*1F (31) - Famicom (Mario Bros.)
+*20 (32) - Newpork (New Pork City)
+*21 (33) - Village (Smashville)
+*22 (34) - Metalgear (Shadow Moses Island)
+*23 (35) - Greenhill (Green Hill Zone)
+*24 (36) - Pictchat (PictoChat)
+*25 (37) - Plankton (Hanenbow)
+*26 (38) - ConfigTest
+27 (39) - Viewer
+*28 (40) - Result
+*29 (41) - DxShrine (Temple)
+*2A (42) - DxYorster (Yoshi's Island)
+*2B (43) - DxGarden (Jungle Japes)
+*2C (44) - DxOnett (Onett)
+*2D (45) - DxGreens (Green Greens)
+*2E (46) - DxPStadium (Pokémon Stadium)
+*2F (47) - DxRCruise (Rainbow Cruise)
+*30 (48) - DxCorneria (Corneria)
+*31 (49) - DxBigBlue (Big Blue)
+*32 (50) - DxZebes (Brinstar)
+*33 (51) - Oldin
+*34 (52) - Homerun (Homerun Contest)
+*35 (53) - Edit (Stages made using the Stage Builder.)
+*36 (54) - Heal (All-Star Resting Stage)
+*37 (55) - OnlineTraining
+*38 (56) - TargetBreak (Break The Targets)
+39 (57) - CharaRoll
+3A (58) - General
+3B (59) - Adventure
+3C (60) - Adventure0
+3D (61) - Adventure2
+3E (62) - AdvMeleeTest
+3F (63) - AdvMelee
+40 (64) - BattleS
+41 (65) - BattleFieldS
+42 (66) - Max
+43 (67) - Unknown

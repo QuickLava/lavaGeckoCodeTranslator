@@ -1,0 +1,57 @@
+Mushroom/Lightning Stacker [Link, BlazingBarrager]
+
+HOOK @ $808960E8                # Address = $(ba + 0x008960E8)
+{
+	stfsx f1,  r3,  r0              # 0x7C23052E
+	psq_l f31, 0x18(r1), 0, 0       # 0xE3E10018
+	cmpwi r30, 0x0                  # 0x2C1E0000
+	beq 0x24                        # 0x41820024
+	lwz r6, 0xd8(r30)               # 0x80DE00D8
+	lwz r6, 0x64(r6)                # 0x80C60064
+	lwz r6, 0x20(r6)                # 0x80C60020
+	lwz r6, 0xc(r6)                 # 0x80C6000C
+	lha r10, 0x2(r6)                # 0xA9460002
+	mulli r10, r10, 0x8             # 0x1D4A0008
+	addi r10, r10, 0x20             # 0x394A0020
+	stfsx f1,  r2,  r10             # 0x7C22552E
+	nop                             # 0x60000000
+}
+HOOK @ $8081C7B0                # Address = $(ba + 0x0081C7B0)
+{
+	cmpwi r29, 0x0                  # 0x2C1D0000
+	beq 0x58                        # 0x41820058
+	lwz r16, 0xd8(r29)              # 0x821D00D8
+	lwz r16, 0x64(r16)              # 0x82100064
+	lwz r16, 0x20(r16)              # 0x82100020
+	lwz r16, 0xc(r16)               # 0x8210000C
+	lha r31, 0x2(r16)               # 0xABF00002
+	mulli r31, r31, 0x8             # 0x1FFF0008
+	addi r31, r31, 0x20             # 0x3BFF0020
+	lwz r14, 0x30(r3)               # 0x81C30030
+	add r15, r31, r2                # 0x7DFF1214
+	lwz r27, 0x4(r15)               # 0x836F0004
+	cmpw r14, r27                   # 0x7C0ED800
+	beq 0x14                        # 0x41820014
+	stw r14, 0x4(r15)               # 0x91CF0004
+	lfs f1, 0x4a0(r3)               # 0xC02304A0
+	stfs f1, 0x0(r15)               # 0xD02F0000
+	b 0x1c                          # 0x4800001C
+	lwz r16, 0x0(r15)               # 0x820F0000
+	cmpwi r16, 0x0                  # 0x2C100000
+	beq 0xc                         # 0x4182000C
+	lfs f1, 0x0(r15)                # 0xC02F0000
+	b 0x8                           # 0x48000008
+	lfs f1, 0x4a0(r3)               # 0xC02304A0
+	nop                             # 0x60000000
+}
+* 04842C74 38800000             # 32-Bit Write @ $(ba + 0x00842C74):  0x38800000
+* 04842C94 38800000             # 32-Bit Write @ $(ba + 0x00842C94):  0x38800000
+* 04842A2C 38800001             # 32-Bit Write @ $(ba + 0x00842A2C):  0x38800001
+* 04B88804 3F3504F3             # 32-Bit Write @ $(ba + 0x00B88804):  0x3F3504F3
+* 04B88808 3F3504F3             # 32-Bit Write @ $(ba + 0x00B88808):  0x3F3504F3
+* 04B88DFC 3F3504F3             # 32-Bit Write @ $(ba + 0x00B88DFC):  0x3F3504F3
+* 04B88E00 3F3504F3             # 32-Bit Write @ $(ba + 0x00B88E00):  0x3F3504F3
+* 20666928 00000001             # 32-Bit If Equal: If Val @ $(ba + 0x00666928) == 0x00000001
+* 085A9340 00000000             # Serial Write (32-bit): Start @ $(ba + 0x005A9340), Initial Value = 0x00000000
+* 200F0004 00000000             # 	Do 16 write(s), Increment Addr by 0x0004, Increment Value by 0x00000000
+* E0000000 80008000             # Full Terminator: ba = 0x80000000, po = 0x80000000

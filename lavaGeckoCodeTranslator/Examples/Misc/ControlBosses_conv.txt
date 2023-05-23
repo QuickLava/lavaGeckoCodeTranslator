@@ -1,0 +1,274 @@
+Control Bosses in Boss Battles
+Credit for these codes goes to Y.S., and Phantom Wings for Porting them (end of boss control codes) (Moveset Compiled by Jose_Gallardo)
+
+[Must be ON](Y.S.)
+* 4A000000 810F1F3C             # Set Pointer Offset: po = 0x810F1F3C
+HOOK @ $810F1F3C                # Address = $(po + 0x00000000)
+{
+	stw r0, 0x58c(r31)              # 0x901F058C
+	rlwinm r0, r0, 16, 16, 31       # (Mask: 0xffff0000)# 0x5400843E
+	stw r0, 0x70(r2)                # 0x90020070
+}
+HOOK @ $8077F780                # Address = $(ba + 0x0077F780)
+{
+	subf r6, r31, r30               # 0x7CDFF050
+	cmpwi r6, 0x414c                # 0x2C06414C
+	bne 0x6c                        # 0x4082006C
+	cmpwi r28, 0x2                  # 0x2C1C0002
+	ble 0x64                        # 0x40810064
+	addi r12, r2, 0x74              # 0x39820074
+	lwz r4, 0x38(r30)               # 0x809E0038
+	lhz r7, 0x0(r12)                # 0xA0EC0000
+	cmpw r4, r7                     # 0x7C043800
+	bgt 0x50                        # 0x41810050
+	lhz r7, 0x2(r12)                # 0xA0EC0002
+	cmpw r28, r7                    # 0x7C1C3800
+	beq 0x44                        # 0x41820044
+	lis r6, 0x804e                  # 0x3CC0804E
+	lhz r6, -0x1b40(r6)             # 0xA0C6E4C0
+	lha r7, 0x4(r12)                # 0xA8EC0004
+	cmpwi r7, 0x0                   # 0x2C070000
+	beq 0x30                        # 0x41820030
+	lha r7, 0x4(r12)                # 0xA8EC0004
+	cmpw r6, r7                     # 0x7C063800
+	bne 0xc                         # 0x4082000C
+	lhz r28, 0x6(r12)               # 0xA38C0006
+	b 0x1c                          # 0x4800001C
+	cmpwi r7, -0x1                  # 0x2C07FFFF
+	bne 0xc                         # 0x4082000C
+	lha r28, 0x6(r12)               # 0xAB8C0006
+	b 0xc                           # 0x4800000C
+	addi r12, r12, 0x4              # 0x398C0004
+	b -0x28                         # 0x4BFFFFD8
+	stw r28, 0x38(r30)              # 0x939E0038
+	nop                             # 0x60000000
+}
+* 4A000000 805A9320             # Set Pointer Offset: po = 0x805A9320
+* 14000078 00000000             # 32-Bit Write @ $(po + 0x00000078):  0x00000000
+* E0000000 80008000             # Full Terminator: ba = 0x80000000, po = 0x80000000
+
+Control enablers:
+
+Petey Piranha
+* 4A000000 805A9320             # Set Pointer Offset: po = 0x805A9320
+* 30000070 00005C00             # 32-Bit If Equal: If Val @ $(po + 0x00000070) == 0x00005C00
+* 16000074 0000001C             # String Write (28 characters) @ $(po + 0x00000074):
+* 00840001 10800001             # 	0x00, 0x84, 0x00, 0x01, 0x10, 0x80, 0x00, 0x01
+* 01840006 01880007             # 	0x01, 0x84, 0x00, 0x06, 0x01, 0x88, 0x00, 0x07
+* 0181000B 0182000C             # 	0x01, 0x81, 0x00, 0x0B, 0x01, 0x82, 0x00, 0x0C
+* FFFFFFFF 00000000             # 	0xFF, 0xFF, 0xFF, 0xFF
+* E0000000 80008000             # Full Terminator: ba = 0x80000000, po = 0x80000000
+Available commands:
+A + UP (on D-pad)
+A + DOWN (on D-pad)
+A + LEFT (on D-pad)
+A + RIGHT (on D-pad)
+
+Rayquaza
+* 4A000000 805A9320             # Set Pointer Offset: po = 0x805A9320
+* 30000070 00005C01             # 32-Bit If Equal: If Val @ $(po + 0x00000070) == 0x00005C01
+* 16000074 00000038             # String Write (56 characters) @ $(po + 0x00000074):
+* 0008001E 1080001E             # 	0x00, 0x08, 0x00, 0x1E, 0x10, 0x80, 0x00, 0x1E
+* 0180000B 0184000C             # 	0x01, 0x80, 0x00, 0x0B, 0x01, 0x84, 0x00, 0x0C
+* 0182000D 0181000D             # 	0x01, 0x82, 0x00, 0x0D, 0x01, 0x81, 0x00, 0x0D
+* 01880010 02880013             # 	0x01, 0x88, 0x00, 0x10, 0x02, 0x88, 0x00, 0x13
+* 02840014 02800017             # 	0x02, 0x84, 0x00, 0x14, 0x02, 0x80, 0x00, 0x17
+* 0282001A 0281001A             # 	0x02, 0x82, 0x00, 0x1A, 0x02, 0x81, 0x00, 0x1A
+* 0480001D FFFFFFFF             # 	0x04, 0x80, 0x00, 0x1D, 0xFF, 0xFF, 0xFF, 0xFF
+* E0000000 80008000             # Full Terminator: ba = 0x80000000, po = 0x80000000
+Available commands:
+A
+A + UP (on D-pad)
+A + DOWN (on D-pad)
+A + LEFT or RIGHT (on D-pad)
+B
+B + UP (on D-pad)
+B + DOWN (on D-pad)
+B + LEFT or RIGHT (on D-pad)
+X
+
+Duon
+* 4A000000 805A9320             # Set Pointer Offset: po = 0x805A9320
+* 30000070 00005C06             # 32-Bit If Equal: If Val @ $(po + 0x00000070) == 0x00005C06
+* 16000074 0000003C             # String Write (60 characters) @ $(po + 0x00000074):
+* 00090001 10800001             # 	0x00, 0x09, 0x00, 0x01, 0x10, 0x80, 0x00, 0x01
+* 0180000B 0181000F             # 	0x01, 0x80, 0x00, 0x0B, 0x01, 0x81, 0x00, 0x0F
+* 0182000F 02800010             # 	0x01, 0x82, 0x00, 0x0F, 0x02, 0x80, 0x00, 0x10
+* 02810011 02820012             # 	0x02, 0x81, 0x00, 0x11, 0x02, 0x82, 0x00, 0x12
+* 02840013 02880014             # 	0x02, 0x84, 0x00, 0x13, 0x02, 0x88, 0x00, 0x14
+* 00A00015 00C00015             # 	0x00, 0xA0, 0x00, 0x15, 0x00, 0xC0, 0x00, 0x15
+* 01840016 01880017             # 	0x01, 0x84, 0x00, 0x16, 0x01, 0x88, 0x00, 0x17
+* FFFFFFFF 00000000             # 	0xFF, 0xFF, 0xFF, 0xFF
+* E0000000 80008000             # Full Terminator: ba = 0x80000000, po = 0x80000000
+Available commands:
+A
+A + UP (on D-pad)
+A + DOWN (on D-pad)
+A + LEFT or RIGHT (on D-pad)
+B
+B + UP (on D-pad)
+B + DOWN (on D-pad)
+B + LEFT (on D-pad)
+B + RIGHT (on D-pad)
+(L)-Button or (R)-Button
+
+Galleom
+* 4A000000 805A9320             # Set Pointer Offset: po = 0x805A9320
+* 30000070 00005C04             # 32-Bit If Equal: If Val @ $(po + 0x00000070) == 0x00005C04
+* 66000001 00000000             # Goto: Jump to Next Line, then forward 1 more Line(s) If Exec Status is True
+* 30000071 00005C03             # 32-Bit If Equal (With Endif): If Val @ $(po + 0x00000070) == 0x00005C03
+* 16000074 00000040             # String Write (64 characters) @ $(po + 0x00000074):
+* 0013002D 1080002D             # 	0x00, 0x13, 0x00, 0x2D, 0x10, 0x80, 0x00, 0x2D
+* 01800014 01810015             # 	0x01, 0x80, 0x00, 0x14, 0x01, 0x81, 0x00, 0x15
+* 01820015 02810016             # 	0x01, 0x82, 0x00, 0x15, 0x02, 0x81, 0x00, 0x16
+* 02820016 02800017             # 	0x02, 0x82, 0x00, 0x16, 0x02, 0x80, 0x00, 0x17
+* 0288001A 00A0001E             # 	0x02, 0x88, 0x00, 0x1A, 0x00, 0xA0, 0x00, 0x1E
+* 00C00023 01840027             # 	0x00, 0xC0, 0x00, 0x23, 0x01, 0x84, 0x00, 0x27
+* 01880028 02840029             # 	0x01, 0x88, 0x00, 0x28, 0x02, 0x84, 0x00, 0x29
+* 0480002C FFFFFFFF             # 	0x04, 0x80, 0x00, 0x2C, 0xFF, 0xFF, 0xFF, 0xFF
+* E0000000 80008000             # Full Terminator: ba = 0x80000000, po = 0x80000000
+Available commands:
+A
+A + UP (on D-pad)
+A + DOWN (on D-pad)
+A + LEFT or RIGHT (on D-pad)
+B
+B + UP (on D-pad)
+B + DOWN (on D-pad)
+B + LEFT or RIGHT (on D-pad)
+X
+(L)-Button or (R)-Button
+
+Master Hand
+* 4A000000 805A9320             # Set Pointer Offset: po = 0x805A9320
+* 30000070 00005A01             # 32-Bit If Equal: If Val @ $(po + 0x00000070) == 0x00005A01
+* 16000074 00000038             # String Write (56 characters) @ $(po + 0x00000074):
+* 000A0034 10800034             # 	0x00, 0x0A, 0x00, 0x34, 0x10, 0x80, 0x00, 0x34
+* 0288000B 0188000E             # 	0x02, 0x88, 0x00, 0x0B, 0x01, 0x88, 0x00, 0x0E
+* 01840011 02800014             # 	0x01, 0x84, 0x00, 0x11, 0x02, 0x80, 0x00, 0x14
+* 01810019 0281001A             # 	0x01, 0x81, 0x00, 0x19, 0x02, 0x81, 0x00, 0x1A
+* 0481001B 0488001D             # 	0x04, 0x81, 0x00, 0x1B, 0x04, 0x88, 0x00, 0x1D
+* 01820020 02820024             # 	0x01, 0x82, 0x00, 0x20, 0x02, 0x82, 0x00, 0x24
+* 01800026 FFFFFFFF             # 	0x01, 0x80, 0x00, 0x26, 0xFF, 0xFF, 0xFF, 0xFF
+* E0000000 80008000             # Full Terminator: ba = 0x80000000, po = 0x80000000
+Available commands:
+A
+A + UP (on D-pad)
+A + DOWN (on D-pad)
+A + LEFT (on D-pad)
+A + RIGHT (on D-pad)
+B
+B + UP (on D-pad)
+B + LEFT (on D-pad)
+B + RIGHT (on D-pad)
+
+Crazy Hand
+* 4A000000 805A9320             # Set Pointer Offset: po = 0x805A9320
+* 30000070 00005A02             # 32-Bit If Equal: If Val @ $(po + 0x00000070) == 0x00005A02
+* 16000074 00000040             # String Write (64 characters) @ $(po + 0x00000074):
+* 00090032 10800032             # 	0x00, 0x09, 0x00, 0x32, 0x10, 0x80, 0x00, 0x32
+* 0288000B 0188000E             # 	0x02, 0x88, 0x00, 0x0B, 0x01, 0x88, 0x00, 0x0E
+* 01840011 02800014             # 	0x01, 0x84, 0x00, 0x11, 0x02, 0x80, 0x00, 0x14
+* 02840015 01820016             # 	0x02, 0x84, 0x00, 0x15, 0x01, 0x82, 0x00, 0x16
+* 02820017 04840018             # 	0x02, 0x82, 0x00, 0x17, 0x04, 0x84, 0x00, 0x18
+* 04800019 0488001A             # 	0x04, 0x80, 0x00, 0x19, 0x04, 0x88, 0x00, 0x1A
+* 0181001D 02810020             # 	0x01, 0x81, 0x00, 0x1D, 0x02, 0x81, 0x00, 0x20
+* 01800023 FFFFFFFF             # 	0x01, 0x80, 0x00, 0x23, 0xFF, 0xFF, 0xFF, 0xFF
+* E0000000 80008000             # Full Terminator: ba = 0x80000000, po = 0x80000000
+Available commands:
+A
+A + UP (on D-pad)
+A + DOWN (on D-pad)
+A + LEFT (on D-pad)
+A + RIGHT (on D-pad)
+B
+B + UP (on D-pad)
+B + DOWN (on D-pad)
+B + LEFT (on D-pad)
+B + RIGHT (on D-pad)
+X
+X + UP (on D-pad)
+X + DOWN (on D-pad)
+
+Ridley
+* 4A000000 805A9320             # Set Pointer Offset: po = 0x805A9320
+* 30000070 00005C05             # 32-Bit If Equal: If Val @ $(po + 0x00000070) == 0x00005C05
+* 16000074 00000034             # String Write (52 characters) @ $(po + 0x00000074):
+* 000B001B 1080001B             # 	0x00, 0x0B, 0x00, 0x1B, 0x10, 0x80, 0x00, 0x1B
+* 02800009 01800009             # 	0x02, 0x80, 0x00, 0x09, 0x01, 0x80, 0x00, 0x09
+* 0182000B 0181000B             # 	0x01, 0x82, 0x00, 0x0B, 0x01, 0x81, 0x00, 0x0B
+* 0282000B 0281000B             # 	0x02, 0x82, 0x00, 0x0B, 0x02, 0x81, 0x00, 0x0B
+* 0184000E 0284000F             # 	0x01, 0x84, 0x00, 0x0E, 0x02, 0x84, 0x00, 0x0F
+* 01880011 02880012             # 	0x01, 0x88, 0x00, 0x11, 0x02, 0x88, 0x00, 0x12
+* FFFFFFFF 00000000             # 	0xFF, 0xFF, 0xFF, 0xFF
+* E0000000 80008000             # Full Terminator: ba = 0x80000000, po = 0x80000000
+Available commands:
+A
+A + UP (on D-pad)
+A + DOWN (on D-pad)
+A + LEFT or RIGHT (on D-pad)
+B
+B + UP (on D-pad)
+B + DOWN (on D-pad)
+B + LEFT or RIGHT (on D-pad)
+
+Meta Ridley
+* 4A000000 805A9320             # Set Pointer Offset: po = 0x805A9320
+* 30000070 00005C07             # 32-Bit If Equal: If Val @ $(po + 0x00000070) == 0x00005C07
+* 16000074 00000020             # String Write (32 characters) @ $(po + 0x00000074):
+* 000A001B 1080001B             # 	0x00, 0x0A, 0x00, 0x1B, 0x10, 0x80, 0x00, 0x1B
+* 0182000B 0180000F             # 	0x01, 0x82, 0x00, 0x0B, 0x01, 0x80, 0x00, 0x0F
+* 01800010 0184000F             # 	0x01, 0x80, 0x00, 0x10, 0x01, 0x84, 0x00, 0x0F
+* 01810016 FFFFFFFF             # 	0x01, 0x81, 0x00, 0x16, 0xFF, 0xFF, 0xFF, 0xFF
+* E0000000 80008000             # Full Terminator: ba = 0x80000000, po = 0x80000000
+Available commands:
+A or A + DOWN (on D-pad)
+A + LEFT (on D-pad)
+A + RIGHT (on D-pad)
+
+Porky
+* 4A000000 805A9320             # Set Pointer Offset: po = 0x805A9320
+* 30000070 00005C02             # 32-Bit If Equal: If Val @ $(po + 0x00000070) == 0x00005C02
+* 16000074 00000028             # String Write (40 characters) @ $(po + 0x00000074):
+* 00080001 10800001             # 	0x00, 0x08, 0x00, 0x01, 0x10, 0x80, 0x00, 0x01
+* 00820013 00810013             # 	0x00, 0x82, 0x00, 0x13, 0x00, 0x81, 0x00, 0x13
+* 01800017 0188001A             # 	0x01, 0x80, 0x00, 0x17, 0x01, 0x88, 0x00, 0x1A
+* 0288001E 02840022             # 	0x02, 0x88, 0x00, 0x1E, 0x02, 0x84, 0x00, 0x22
+* 02800023 FFFFFFFF             # 	0x02, 0x80, 0x00, 0x23, 0xFF, 0xFF, 0xFF, 0xFF
+* E0000000 80008000             # Full Terminator: ba = 0x80000000, po = 0x80000000
+Available commands:
+A
+A + UP (on D-pad)
+LEFT or RIGHT (on D-pad)
+B
+B + UP (on D-pad)
+B + DOWN (on D-pad)
+
+Tabuu
+* 4A000000 805A9320             # Set Pointer Offset: po = 0x805A9320
+* 30000070 00005C08             # 32-Bit If Equal: If Val @ $(po + 0x00000070) == 0x00005C08
+* 16000074 00000048             # String Write (72 characters) @ $(po + 0x00000074):
+* 00100027 10800027             # 	0x00, 0x10, 0x00, 0x27, 0x10, 0x80, 0x00, 0x27
+* 01840011 01800012             # 	0x01, 0x84, 0x00, 0x11, 0x01, 0x80, 0x00, 0x12
+* 00A00013 01810016             # 	0x00, 0xA0, 0x00, 0x13, 0x01, 0x81, 0x00, 0x16
+* 01820018 01880019             # 	0x01, 0x82, 0x00, 0x18, 0x01, 0x88, 0x00, 0x19
+* 0480001D 0284001E             # 	0x04, 0x80, 0x00, 0x1D, 0x02, 0x84, 0x00, 0x1E
+* 0288001F 02810020             # 	0x02, 0x88, 0x00, 0x1F, 0x02, 0x81, 0x00, 0x20
+* 02820023 00C00024             # 	0x02, 0x82, 0x00, 0x23, 0x00, 0xC0, 0x00, 0x24
+* 02800026 10800027             # 	0x02, 0x80, 0x00, 0x26, 0x10, 0x80, 0x00, 0x27
+* FFFFFFFF 00000000             # 	0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00
+* E0000000 80008000             # Full Terminator: ba = 0x80000000, po = 0x80000000
+Available commands:
+A
+A + UP (on D-pad)
+A + DOWN (on D-pad)
+A + LEFT (on D-pad)
+A + RIGHT (on D-pad)
+B
+B + UP (on D-pad)
+B + DOWN (on D-pad)
+B + LEFT (on D-pad)
+B + RIGHT (on D-pad)
+X
+(R)-Button
+(L)-Button
