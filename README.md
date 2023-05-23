@@ -1,15 +1,15 @@
 # lavaGeckoCodeTranslator
 A tool for annotating raw hex Gecko codes with descriptive comments, converting code into GCTRM compatible syntax where appropriate. Importantly, this program does not seek to change or edit codes in any way; only to make it more apparent what they're actually doing.
-Additionally, translations aim to be fully compilable via GCTRM, and are constructed with the aim of compiling as accurately as possible to the originally provided hex, though some constructions and instructions may compile slightly differently (see below).
+Additionally, translations aim to be fully compilable via GCTRM, and are constructed with the aim of compiling as accurately as possible to the originally provided hex, though some constructions and instructions may compile slightly differently (see "Important Notes, Warnings, and Shortcomings" section below).
 Lastly, for a look at what translated code output looks like, see the "Examples" folder [here](https://github.com/QuickLava/lavaGeckoCodeTranslator/tree/master/lavaGeckoCodeTranslator/Examples).
 
 ## Usage for Converting Individual Codes
 To translate a code, paste it into a plain text file (eg. .txt, .asm, etc.), and either drag the file onto the program executable, or pass its file path as a command line argument to the program. The resulting conversion will be placed in the same location as the source file, with the same name, suffixed with "\_conv". If you find that the program is failing to produce a translation, it may be that either the specified input file doesn't exist, or that attempting to write the output file failed for one reason or another.
 
-## Usage for Converting Hex Code Within Existing Code Files
+## Usage for Converting Hex Code Within Existing Source Files
 The same rules as above apply for translating any raw Gecko code within existing files; simply drag them onto the program executable, or pass their file paths as command line arguments to the program. The program will go through the passed in files one by one, translating any raw hex it can find, leaving any non-hex code lines (eg. comments, GCTRM syntax lines, etc.) unchanged, replicating them in the translated output as they appeared in the source file.
 
-Do note though, that this program was designed around converting pure hex Gecko code, not the combination of pure hex and GCTRM syntax code often found in more modern source code files. As such, while the program's output is often correct when operating on mixed files like these, converting the code in such files to hex (eg. by compiling the file with GCTRM, and translating the resulting "codeset.txt" file instead) before attempting to translate them may grant more consistently accurate results.
+Please note, though, that this program was designed around converting pure hex Gecko code, not the combination of pure hex and GCTRM syntax code often found in more modern source code files. As such, while the program's output is often correct when operating on mixed files like these, converting the code in such files to hex (eg. by compiling the file with GCTRM, and translating the resulting "codeset.txt" file instead) before attempting to translate them may grant more consistently accurate results.
 
 ## Important Notes, Warnings, and Shortcomings
 ### Inaccurate Compilation of Branch Prediction Hints
