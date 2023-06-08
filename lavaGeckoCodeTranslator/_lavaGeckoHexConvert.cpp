@@ -1649,6 +1649,11 @@ namespace lava::gecko
 				{
 					outputString = "HOOK @ $" + lava::numToHexStringWithPadding(inferredHookAddress, 8);
 					commentString << "Address = " << getAddressComponentString(signatureNum);
+					lava::ppc::mapSymbol* parentSymbol = lava::ppc::getSymbolFromAddress(inferredHookAddress);
+					if (parentSymbol != nullptr)
+					{
+						commentString << " [in \"" << parentSymbol->symbolName << "\"]";
+					}
 					printStringWithComment(outputStreamIn, outputString, commentString.str(), 1);
 				}
 				else

@@ -13,9 +13,33 @@ int main(int argc, char** argv)
 		lava::ppc::buildInstructionDictionary();
 		lava::gecko::buildGeckoCodeDictionary();
 
+		std::vector<unsigned long> argsParsedAsMaps{};
+		for (unsigned long i = 1; i < argc; i++)
+		{
+			std::filesystem::path currArg(argv[i]);
+			if (currArg.extension() == ".map")
+			{
+				std::cout << "Parsing \"" << argv[i] << "\"... ";
+				if (lava::ppc::parseMapFile(argv[i]))
+				{
+					std::cout << "Success!\n";
+				}
+				else
+				{
+					std::cerr << "Failure!\n";
+				}
+				argsParsedAsMaps.push_back(i);
+			}
+		}
+
 		std::string outputPath("");
 		for (unsigned long i = 1; i < argc; i++)
 		{
+			if (std::find(argsParsedAsMaps.begin(), argsParsedAsMaps.end(), i) != argsParsedAsMaps.end())
+			{
+				continue;
+			}
+
 			std::cout << "Translating \"" << argv[i] << "\"... ";
 
 			outputPath = lava::applyFilenameSuffix(argv[i], suffixString);
