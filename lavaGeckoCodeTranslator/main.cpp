@@ -1,8 +1,40 @@
 #include "stdafx.h"
 #include "lavaGeckoCodeTranslator.h"
+#include "whereami/whereami.h"
 
 const std::string version = "v1.0.0";
 const std::string suffixString = "_conv";
+const std::string localMapFilePath = "./symbols.map";
+
+bool tryParseLocalMapFile()
+{
+	bool result = 0;
+
+	std::filesystem::path originalWorkingDir = std::filesystem::current_path();
+	int length = wai_getModulePath(NULL, 0, NULL);
+	std::string path(length, 0x00);
+	wai_getModulePath(&path[0], length, NULL);
+	if (path[0] != 0x00)
+	{
+		std::filesystem::current_path(std::filesystem::path(path).parent_path());
+		if (std::filesystem::is_regular_file(localMapFilePath))
+		{
+			std::cout << "Symbol map file detected! Parsing \"" << localMapFilePath << "\"... ";
+			if (lava::ppc::parseMapFile(localMapFilePath))
+			{
+				std::cout << "Success!\n";
+				result = 1;
+			}
+			else
+			{
+				std::cerr << "Failure!\n";
+			}
+		}
+		std::filesystem::current_path(originalWorkingDir);
+	}
+
+	return result;
+}
 
 int main(int argc, char** argv)
 {
@@ -32,9 +64,15 @@ int main(int argc, char** argv)
 			}
 		}
 
+		if (argsParsedAsMaps.empty())
+		{
+			tryParseLocalMapFile();
+		}
+
 		std::string outputPath("");
 		for (unsigned long i = 1; i < argc; i++)
 		{
+			// Skip the argument if it's already been parsed as a .map file.
 			if (std::find(argsParsedAsMaps.begin(), argsParsedAsMaps.end(), i) != argsParsedAsMaps.end())
 			{
 				continue;
