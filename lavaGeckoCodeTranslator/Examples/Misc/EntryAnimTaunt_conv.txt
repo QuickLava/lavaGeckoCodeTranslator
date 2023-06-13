@@ -1,6 +1,6 @@
 Taunt to do your character's entry:  (Phantom Wings)
 * 4A000000 8077F780             # Set Pointer Offset: po = 0x8077F780
-HOOK @ $8077F780                # Address = $(po + 0x00000000)
+HOOK @ $8077F780                # Address = $(po + 0x00000000) [in "changeStatusRequest/[soStatusModuleImpl]/so_status_module" @ $8077F5A8]
 {
 	cmpwi r3, 0x0                   # 0x2C030000
 	beq 0x10                        # 0x41820010

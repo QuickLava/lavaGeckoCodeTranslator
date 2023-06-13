@@ -1,0 +1,30 @@
+# Note: This is an interesting one in that it legitimately doesn't seem to be hooking an existing symbol, at least
+# as far as the usual RSBE01.map file is concerned. The area looks like just raw memory in Dolphin as well; very strange.
+
+Only Load CSPs From SD When Absolutely necessary 2.0 ASV [codes, wiiztec]
+
+    C26A377C 0000000D
+    3D808058 618C84C4
+    807F01B0 7D6C18AE
+    2C0B0000 41810010
+    2C0F00FD 40820014
+    39600001 396BFFFF
+    7D6C19AE 48000014
+    3C808058 A08458BA
+    70840040 41820024
+    8081011C 3CA09019
+    60A5C600 7CA520AE
+    7C052000 4182000C
+    3C80806A 38841F40
+    386100C0 00000000
+    046A3780 2A04FFFF
+    046A3784 40A10034
+    006A1F63 00000061
+    026A1F64 00006C74
+
+this code needed to be modified in order to have the correct CSPs
+display when you unpick a character in ASV and your last character
+was an L alt, also unrelated but Release L to load CSPs from
+/pf/menu/common/char_bust_csp/ v2 & Hold L to load CSPs from
+/pf/menu/common/char_bust_alt/ v2 are unecessary and can be
+removed

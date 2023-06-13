@@ -1,0 +1,44 @@
+# Note: This is an interesting one in that it legitimately doesn't seem to be hooking an existing symbol, at least
+# as far as the usual RSBE01.map file is concerned. The area looks like just raw memory in Dolphin as well; very strange.
+
+Only Load CSPs From SD When Absolutely necessary 2.0 ASV [codes, wiiztec]
+
+HOOK @ $806A377C                # Address = $(ba + 0x006A377C)
+{
+	lis r12, 0x8058                 # 0x3D808058
+	ori r12, r12, 0x84c4            # 0x618C84C4
+	lwz r3, 0x1b0(r31)              # 0x807F01B0
+	lbzx r11, r12, r3               # 0x7D6C18AE
+	cmpwi r11, 0x0                  # 0x2C0B0000
+	bgt 0x10                        # 0x41810010
+	cmpwi r15, 0xfd                 # 0x2C0F00FD
+	bne 0x14                        # 0x40820014
+	li r11, 0x1                     # 0x39600001
+	subi r11, r11, 0x1              # 0x396BFFFF
+	stbx r11, r12, r3               # 0x7D6C19AE
+	b 0x14                          # 0x48000014
+	lis r4, 0x8058                  # 0x3C808058
+	lhz r4, 0x58ba(r4)              # 0xA08458BA
+	andi. r4, r4, 0x40              # 0x70840040
+	beq 0x24                        # 0x41820024
+	lwz r4, 0x11c(r1)               # 0x8081011C
+	lis r5, 0x9019                  # 0x3CA09019
+	ori r5, r5, 0xc600              # 0x60A5C600
+	lbzx r5, r5, r4                 # 0x7CA520AE
+	cmpw r5, r4                     # 0x7C052000
+	beq 0xc                         # 0x4182000C
+	lis r4, 0x806a                  # 0x3C80806A
+	addi r4, r4, 0x1f40             # 0x38841F40
+	addi r3, r1, 0xc0               # 0x386100C0
+}
+* 046A3780 2A04FFFF             # 32-Bit Write @ $(ba + 0x006A3780):  0x2A04FFFF
+* 046A3784 40A10034             # 32-Bit Write @ $(ba + 0x006A3784):  0x40A10034
+* 006A1F63 00000061             # 8-Bit Write @ $(ba + 0x006A1F63):  0x61
+* 026A1F64 00006C74             # 16-Bit Write @ $(ba + 0x006A1F64):  0x6C74
+
+this code needed to be modified in order to have the correct CSPs
+display when you unpick a character in ASV and your last character
+was an L alt, also unrelated but Release L to load CSPs from
+/pf/menu/common/char_bust_csp/ v2 & Hold L to load CSPs from
+/pf/menu/common/char_bust_alt/ v2 are unecessary and can be
+removed

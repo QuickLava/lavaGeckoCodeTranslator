@@ -1,6 +1,6 @@
 Mushroom/Lightning Stacker [Link, BlazingBarrager]
 
-HOOK @ $808960E8                # Address = $(ba + 0x008960E8)
+HOOK @ $808960E8                # Address = $(ba + 0x008960E8) [in "getFixScale/[ftStatusUniqProcessKinoko]/ft_status_uniq_pr" @ $80895F34]
 {
 	stfsx f1,  r3,  r0              # 0x7C23052E
 	psq_l f31, 0x18(r1), 0, 0       # 0xE3E10018
@@ -16,7 +16,7 @@ HOOK @ $808960E8                # Address = $(ba + 0x008960E8)
 	stfsx f1,  r2,  r10             # 0x7C22552E
 	nop                             # 0x60000000
 }
-HOOK @ $8081C7B0                # Address = $(ba + 0x0081C7B0)
+HOOK @ $8081C7B0                # Address = $(ba + 0x0081C7B0) [in "getScale/[ftOwner]/ft_owner.o" @ $8081C7AC]
 {
 	cmpwi r29, 0x0                  # 0x2C1D0000
 	beq 0x58                        # 0x41820058

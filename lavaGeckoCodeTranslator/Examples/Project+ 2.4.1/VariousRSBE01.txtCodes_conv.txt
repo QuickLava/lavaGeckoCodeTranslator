@@ -11,7 +11,7 @@ Special Mode flags clear [wiiztec]
 ######################################################
 1 Player Matches in Time Mode only [InternetExplorer]
 ######################################################
-HOOK @ $8068D420                # Address = $(ba + 0x0068D420)
+HOOK @ $8068D420                # Address = $(ba + 0x0068D420) [in "isReady/[muSelCharTask]/mu_selchar.o" @ $8068D338]
 {
 	cmpwi r6, 0x0                   # 0x2C060000
 	bgt 0xc                         # 0x4181000C
@@ -35,7 +35,7 @@ Allow 2x Speed Setting in Training [Magus]
 * 041058C8 2C1E0006             # 32-Bit Write @ $(ba + 0x001058C8):  0x2C1E0006
 * 041058E4 3BC00005             # 32-Bit Write @ $(ba + 0x001058E4):  0x3BC00005
 * 049629E8 40800008             # 32-Bit Write @ $(ba + 0x009629E8):  0x40800008
-HOOK @ $809629F4                # Address = $(ba + 0x009629F4)
+HOOK @ $809629F4                # Address = $(ba + 0x009629F4) [in "processBegin/[stOperatorInfoTraining]/st_operator_info_tr" @ $809620CC]
 {
 	li r3, 0x5a                     # 0x3860005A
 	beq 0x8                         # 0x41820008
@@ -74,7 +74,7 @@ Usage Storage Engine [Dantarion]
 ##############################################################################
 [Project+] Load Common2.pac from the SD card [DukeItOut, P+ paths by waffeln]
 ##############################################################################
-HOOK @ $8001BF2C                # Address = $(ba + 0x0001BF2C)
+HOOK @ $8001BF2C                # Address = $(ba + 0x0001BF2C) [in "readFile/[gfFileIO]/gf_file_io.o" @ $8001BF0C]
 {
 	lwz r3, 0x0(r3)                 # 0x80630000
 	bl 0x4                          # 0x48000005
@@ -87,7 +87,7 @@ HOOK @ $8001BF2C                # Address = $(ba + 0x0001BF2C)
 	bctrl                           # 0x4E800421
 	cmpwi r3, 0x0                   # 0x2C030000
 	mr r3, r12                      # 0x7D836378
-	bne 0x50                        # 0x40A20050
+	bne+ 0x50                       # 0x40A20050
 	subi r4, r4, 0x22               # 0x3884FFDE
 	lis r5, 0x803f                  # 0x3CA0803F
 	ori r5, r5, 0xa280              # 0x60A5A280
@@ -123,7 +123,7 @@ Effect.pac Roster Expansion System (RSBE.Ver) V2 (Costume-Specific Etc File Supp
 * 04416F7C 80416F70             # 32-Bit Write @ $(ba + 0x00416F7C):  0x80416F70
 * 06416F60 00000006             # String Write (6 characters) @ $(ba + 0x00416F60):
 * 63757374 6F6D0000             # 	"custom" (Note: Not Null-Terminated!)
-HOOK @ $8005EFCC                # Address = $(ba + 0x0005EFCC)
+HOOK @ $8005EFCC                # Address = $(ba + 0x0005EFCC) [in "searchResourceId/[ecMgr]/ec_mgr.o" @ $8005EC64]
 {
 	addi r31, r31, 0x4              # 0x3BFF0004
 	cmplwi r27, 0x137               # 0x281B0137
@@ -191,7 +191,7 @@ HOOK @ $8005EFCC                # Address = $(ba + 0x0005EFCC)
 * 0405F01C 2C0302F7             # 32-Bit Write @ $(ba + 0x0005F01C):  0x2C0302F7
 * 0405F0A8 2C0302F7             # 32-Bit Write @ $(ba + 0x0005F0A8):  0x2C0302F7
 * 04061200 28040A8D             # 32-Bit Write @ $(ba + 0x00061200):  0x28040A8D
-HOOK @ $80061218                # Address = $(ba + 0x00061218)
+HOOK @ $80061218                # Address = $(ba + 0x00061218) [in "traceStart/[ecMgr]/ec_mgr.o" @ $80061160]
 {
 	lwzx r4, r4, r9                 # 0x7C84482E
 	cmplwi r21, 0x87                # 0x28150087
@@ -216,7 +216,7 @@ HOOK @ $80061218                # Address = $(ba + 0x00061218)
 * 6D000000 00000000             # 	... m" (Note: Not Null-Terminated!)
 * 06416FAB 00000006             # String Write (6 characters) @ $(ba + 0x00416FAB):
 * 54726163 65300000             # 	"Trace0" (Note: Not Null-Terminated!)
-HOOK @ $80061278                # Address = $(ba + 0x00061278)
+HOOK @ $80061278                # Address = $(ba + 0x00061278) [in "traceStart/[ecMgr]/ec_mgr.o" @ $80061160]
 {
 	lwzx r4, r4, r9                 # 0x7C84482E
 	cmplwi r21, 0x87                # 0x28150087
@@ -265,7 +265,7 @@ HOOK @ $80061278                # Address = $(ba + 0x00061278)
 ##########################################################
 Custom Requirements v1.3 (ProjectM) [Magus, Sammi-Husky]
 ##########################################################
-HOOK @ $807854B0                # Address = $(ba + 0x007854B0)
+HOOK @ $807854B0                # Address = $(ba + 0x007854B0) [in "checkEstablishSub/[soGeneralTermDisideModuleImpl]/so_gene" @ $8078249C]
 {
 	stfd f30, 0x10(r2)              # 0xDBC20010
 	stfd f31, 0x18(r2)              # 0xDBE20018
@@ -297,7 +297,7 @@ HOOK @ $807854B0                # Address = $(ba + 0x007854B0)
 	cmpwi r7, 0x2                   # 0x2C070002
 	blt 0xc                         # 0x4180000C
 	cmpwi r6, 0x2                   # 0x2C060002
-	bge 0x150                       # 0x40A00150
+	bge+ 0x150                      # 0x40A00150
 	lfs f30, 0x38(r10)              # 0xC3CA0038
 	lfs f31, 0x3c(r10)              # 0xC3EA003C
 	fmuls f30, f30, f30             # 0xEFDE07B2
@@ -395,142 +395,142 @@ HOOK @ $807854B0                # Address = $(ba + 0x007854B0)
 #############################################################
 Bit Variables Beyond 255 and Negative Offset Variables [Magus]
 #############################################################
-HOOK @ $807AC9E4                # Address = $(ba + 0x007AC9E4)
+HOOK @ $807AC9E4                # Address = $(ba + 0x007AC9E4) [in "getInt/[soWorkManageModuleImpl]/so_work_manage_module_imp" @ $807AC9E0]
 {
 	rlwinm. r12, r4, 0, 8, 8        # (Mask: 0x00800000)# 0x548C0211
 	rlwinm r4, r4, 0, 9, 31         # (Mask: 0x007fffff)# 0x5484027E
-	beq 0x8                         # 0x41A20008
+	beq+ 0x8                        # 0x41A20008
 	neg r4, r4                      # 0x7C8400D0
 	nop                             # 0x60000000
 }
-HOOK @ $807ACA04                # Address = $(ba + 0x007ACA04)
+HOOK @ $807ACA04                # Address = $(ba + 0x007ACA04) [in "setInt/[soWorkManageModuleImpl]/so_work_manage_module_imp" @ $807ACA00]
 {
 	rlwinm. r12, r5, 0, 8, 8        # (Mask: 0x00800000)# 0x54AC0211
 	rlwinm r5, r5, 0, 9, 31         # (Mask: 0x007fffff)# 0x54A5027E
-	beq 0x8                         # 0x41A20008
+	beq+ 0x8                        # 0x41A20008
 	neg r5, r5                      # 0x7CA500D0
 	nop                             # 0x60000000
 }
-HOOK @ $807ACB78                # Address = $(ba + 0x007ACB78)
+HOOK @ $807ACB78                # Address = $(ba + 0x007ACB78) [in "addInt/[soWorkManageModuleImpl]/so_work_manage_module_imp" @ $807ACB74]
 {
 	rlwinm. r12, r5, 0, 8, 8        # (Mask: 0x00800000)# 0x54AC0211
 	rlwinm r5, r5, 0, 9, 31         # (Mask: 0x007fffff)# 0x54A5027E
-	beq 0x8                         # 0x41A20008
+	beq+ 0x8                        # 0x41A20008
 	neg r5, r5                      # 0x7CA500D0
 	nop                             # 0x60000000
 }
-HOOK @ $807ACB98                # Address = $(ba + 0x007ACB98)
+HOOK @ $807ACB98                # Address = $(ba + 0x007ACB98) [in "subInt/[soWorkManageModuleImpl]/so_work_manage_module_imp" @ $807ACB94]
 {
 	rlwinm. r12, r5, 0, 8, 8        # (Mask: 0x00800000)# 0x54AC0211
 	rlwinm r5, r5, 0, 9, 31         # (Mask: 0x007fffff)# 0x54A5027E
-	beq 0x8                         # 0x41A20008
+	beq+ 0x8                        # 0x41A20008
 	neg r5, r5                      # 0x7CA500D0
 	nop                             # 0x60000000
 }
-HOOK @ $807ACAA0                # Address = $(ba + 0x007ACAA0)
+HOOK @ $807ACAA0                # Address = $(ba + 0x007ACAA0) [in "incInt/[soWorkManageModuleImpl]/so_work_manage_module_imp" @ $807ACA9C]
 {
 	rlwinm. r12, r4, 0, 8, 8        # (Mask: 0x00800000)# 0x548C0211
 	rlwinm r4, r4, 0, 9, 31         # (Mask: 0x007fffff)# 0x5484027E
-	beq 0x8                         # 0x41A20008
+	beq+ 0x8                        # 0x41A20008
 	neg r4, r4                      # 0x7C8400D0
 	nop                             # 0x60000000
 }
-HOOK @ $807ACAC0                # Address = $(ba + 0x007ACAC0)
+HOOK @ $807ACAC0                # Address = $(ba + 0x007ACAC0) [in "decInt/[soWorkManageModuleImpl]/so_work_manage_module_imp" @ $807ACABC]
 {
 	rlwinm. r12, r4, 0, 8, 8        # (Mask: 0x00800000)# 0x548C0211
 	rlwinm r4, r4, 0, 9, 31         # (Mask: 0x007fffff)# 0x5484027E
-	beq 0x8                         # 0x41A20008
+	beq+ 0x8                        # 0x41A20008
 	neg r4, r4                      # 0x7C8400D0
 	nop                             # 0x60000000
 }
-HOOK @ $807AD114                # Address = $(ba + 0x007AD114)
+HOOK @ $807AD114                # Address = $(ba + 0x007AD114) [in "notifyEventAnimCmd/[soWorkManageModuleImpl]/so_work_manag" @ $807ACDC8]
 {
 	rlwinm. r12, r30, 0, 8, 8       # (Mask: 0x00800000)# 0x57CC0211
 	rlwinm r5, r30, 0, 9, 31        # (Mask: 0x007fffff)# 0x57C5027E
-	beq 0x8                         # 0x41A20008
+	beq+ 0x8                        # 0x41A20008
 	neg r5, r5                      # 0x7CA500D0
 	nop                             # 0x60000000
 }
-HOOK @ $807AD15C                # Address = $(ba + 0x007AD15C)
+HOOK @ $807AD15C                # Address = $(ba + 0x007AD15C) [in "notifyEventAnimCmd/[soWorkManageModuleImpl]/so_work_manag" @ $807ACDC8]
 {
 	rlwinm. r12, r30, 0, 8, 8       # (Mask: 0x00800000)# 0x57CC0211
 	rlwinm r5, r30, 0, 9, 31        # (Mask: 0x007fffff)# 0x57C5027E
-	beq 0x8                         # 0x41A20008
+	beq+ 0x8                        # 0x41A20008
 	neg r5, r5                      # 0x7CA500D0
 	nop                             # 0x60000000
 }
-HOOK @ $807ACBB8                # Address = $(ba + 0x007ACBB8)
+HOOK @ $807ACBB8                # Address = $(ba + 0x007ACBB8) [in "getFloat/[soWorkManageModuleImpl]/so_work_manage_module_i" @ $807ACBB4]
 {
 	rlwinm. r12, r4, 0, 8, 8        # (Mask: 0x00800000)# 0x548C0211
 	rlwinm r4, r4, 0, 9, 31         # (Mask: 0x007fffff)# 0x5484027E
-	beq 0x8                         # 0x41A20008
+	beq+ 0x8                        # 0x41A20008
 	neg r4, r4                      # 0x7C8400D0
 	nop                             # 0x60000000
 }
-HOOK @ $807ACBD8                # Address = $(ba + 0x007ACBD8)
+HOOK @ $807ACBD8                # Address = $(ba + 0x007ACBD8) [in "setFloat/[soWorkManageModuleImpl]/so_work_manage_module_i" @ $807ACBD4]
 {
 	rlwinm. r12, r4, 0, 8, 8        # (Mask: 0x00800000)# 0x548C0211
 	rlwinm r4, r4, 0, 9, 31         # (Mask: 0x007fffff)# 0x5484027E
-	beq 0x8                         # 0x41A20008
+	beq+ 0x8                        # 0x41A20008
 	neg r4, r4                      # 0x7C8400D0
 	nop                             # 0x60000000
 }
-HOOK @ $807ACCA0                # Address = $(ba + 0x007ACCA0)
+HOOK @ $807ACCA0                # Address = $(ba + 0x007ACCA0) [in "addFloat/[soWorkManageModuleImpl]/so_work_manage_module_i" @ $807ACC9C]
 {
 	rlwinm. r12, r4, 0, 8, 8        # (Mask: 0x00800000)# 0x548C0211
 	rlwinm r4, r4, 0, 9, 31         # (Mask: 0x007fffff)# 0x5484027E
-	beq 0x8                         # 0x41A20008
+	beq+ 0x8                        # 0x41A20008
 	neg r4, r4                      # 0x7C8400D0
 	nop                             # 0x60000000
 }
-HOOK @ $807ACCC0                # Address = $(ba + 0x007ACCC0)
+HOOK @ $807ACCC0                # Address = $(ba + 0x007ACCC0) [in "subFloat/[soWorkManageModuleImpl]/so_work_manage_module_i" @ $807ACCBC]
 {
 	rlwinm. r12, r4, 0, 8, 8        # (Mask: 0x00800000)# 0x548C0211
 	rlwinm r4, r4, 0, 9, 31         # (Mask: 0x007fffff)# 0x5484027E
-	beq 0x8                         # 0x41A20008
+	beq+ 0x8                        # 0x41A20008
 	neg r4, r4                      # 0x7C8400D0
 	nop                             # 0x60000000
 }
-HOOK @ $807AD528                # Address = $(ba + 0x007AD528)
+HOOK @ $807AD528                # Address = $(ba + 0x007AD528) [in "notifyEventAnimCmd/[soWorkManageModuleImpl]/so_work_manag" @ $807ACDC8]
 {
 	rlwinm. r12, r30, 0, 8, 8       # (Mask: 0x00800000)# 0x57CC0211
 	rlwinm r4, r30, 0, 9, 31        # (Mask: 0x007fffff)# 0x57C4027E
-	beq 0x8                         # 0x41A20008
+	beq+ 0x8                        # 0x41A20008
 	neg r4, r4                      # 0x7C8400D0
 	nop                             # 0x60000000
 }
-HOOK @ $807AD570                # Address = $(ba + 0x007AD570)
+HOOK @ $807AD570                # Address = $(ba + 0x007AD570) [in "notifyEventAnimCmd/[soWorkManageModuleImpl]/so_work_manag" @ $807ACDC8]
 {
 	rlwinm. r12, r30, 0, 8, 8       # (Mask: 0x00800000)# 0x57CC0211
 	rlwinm r4, r30, 0, 9, 31        # (Mask: 0x007fffff)# 0x57C4027E
-	beq 0x8                         # 0x41A20008
+	beq+ 0x8                        # 0x41A20008
 	neg r4, r4                      # 0x7C8400D0
 	nop                             # 0x60000000
 }
-HOOK @ $807ACCEC                # Address = $(ba + 0x007ACCEC)
+HOOK @ $807ACCEC                # Address = $(ba + 0x007ACCEC) [in "isFlag/[soWorkManageModuleImpl]/so_work_manage_module_imp" @ $807ACCDC]
 {
 	rlwinm r0, r4, 0, 9, 31         # (Mask: 0x007fffff)# 0x5480027E
 	srawi r0, r0, 5                 # 0x7C002E70
 	rlwinm. r12, r4, 0, 8, 8        # (Mask: 0x00800000)# 0x548C0211
-	beq 0x8                         # 0x41A20008
+	beq+ 0x8                        # 0x41A20008
 	neg r0, r0                      # 0x7C0000D0
 }
 * 047ACCF8 60000000             # 32-Bit Write @ $(ba + 0x007ACCF8):  0x60000000
-HOOK @ $807ACD20                # Address = $(ba + 0x007ACD20)
+HOOK @ $807ACD20                # Address = $(ba + 0x007ACD20) [in "onFlag/[soWorkManageModuleImpl]/so_work_manage_module_imp" @ $807ACD10]
 {
 	rlwinm r0, r4, 0, 9, 31         # (Mask: 0x007fffff)# 0x5480027E
 	srawi r0, r0, 5                 # 0x7C002E70
 	rlwinm. r12, r4, 0, 8, 8        # (Mask: 0x00800000)# 0x548C0211
-	beq 0x8                         # 0x41A20008
+	beq+ 0x8                        # 0x41A20008
 	neg r0, r0                      # 0x7C0000D0
 }
 * 047ACD2C 60000000             # 32-Bit Write @ $(ba + 0x007ACD2C):  0x60000000
-HOOK @ $807ACD54                # Address = $(ba + 0x007ACD54)
+HOOK @ $807ACD54                # Address = $(ba + 0x007ACD54) [in "offFlag/[soWorkManageModuleImpl]/so_work_manage_module_im" @ $807ACD44]
 {
 	rlwinm r0, r4, 0, 9, 31         # (Mask: 0x007fffff)# 0x5480027E
 	srawi r0, r0, 5                 # 0x7C002E70
 	rlwinm. r12, r4, 0, 8, 8        # (Mask: 0x00800000)# 0x548C0211
-	beq 0x8                         # 0x41A20008
+	beq+ 0x8                        # 0x41A20008
 	neg r0, r0                      # 0x7C0000D0
 }
 * 047ACD60 60000000             # 32-Bit Write @ $(ba + 0x007ACD60):  0x60000000
@@ -538,17 +538,17 @@ HOOK @ $807ACD54                # Address = $(ba + 0x007ACD54)
 ####################################################
 No Air Dodge in tumble [spunit262, Phantom Wings]
 ####################################################
-HOOK @ $80781310                # Address = $(ba + 0x00781310)
+HOOK @ $80781310                # Address = $(ba + 0x00781310) [in "checkEstablish/[soTransitionModuleImpl]/so_transition_mod" @ $807811B4]
 {
 	lwz r4, 0x0(r24)                # 0x80980000
 	cmpwi r4, 0x21                  # 0x2C040021
-	bne 0x20                        # 0x40A20020
+	bne+ 0x20                       # 0x40A20020
 	lwz r4, 0x7c(r23)               # 0x8097007C
 	lwz r4, 0x34(r4)                # 0x80840034
 	cmpwi r4, 0x42                  # 0x2C040042
-	blt 0x10                        # 0x41A00010
+	blt+ 0x10                       # 0x41A00010
 	cmpwi r4, 0x49                  # 0x2C040049
-	bgt 0x8                         # 0x41A10008
+	bgt+ 0x8                        # 0x41A10008
 	li r3, 0x0                      # 0x38600000
 	addi r11, r1, 0x40              # 0x39610040
 }
@@ -556,23 +556,23 @@ HOOK @ $80781310                # Address = $(ba + 0x00781310)
 ######################################
 Tech Window v0.10 [spunit262, Magus]
 ######################################
-HOOK @ $8077F190                # Address = $(ba + 0x0077F190)
+HOOK @ $8077F190                # Address = $(ba + 0x0077F190) [in "checkTransition/[soStatusModuleImpl]/so_status_module_imp" @ $8077F0C4]
 {
 	lwz r4, 0x10(r1)                # 0x80810010
 	cmpwi r4, 0x46                  # 0x2C040046
-	blt 0x78                        # 0x41A00078
+	blt+ 0x78                       # 0x41A00078
 	cmpwi r4, 0x4c                  # 0x2C04004C
-	bgt 0x70                        # 0x41A10070
+	bgt+ 0x70                       # 0x41A10070
 	lwz r5, 0x68(r31)               # 0x80BF0068
 	lbz r6, 0x8f(r5)                # 0x88C5008F
 	cmpwi r6, 0x14                  # 0x2C060014
-	bge 0x60                        # 0x40A00060
+	bge+ 0x60                       # 0x40A00060
 	lbz r7, 0x8e(r5)                # 0x88E5008E
 	cmpwi r7, 0x28                  # 0x2C070028
 	blt 0x54                        # 0x41800054
 	cmpwi r4, 0x49                  # 0x2C040049
 	beq 0x4c                        # 0x4182004C
-	blt 0x8                         # 0x41A00008
+	blt+ 0x8                        # 0x41A00008
 	subi r4, r4, 0x4                # 0x3884FFFC
 	subi r4, r4, 0x46               # 0x3884FFBA
 	rlwinm r4, r4, 1, 0, 30         # (Mask: 0x7fffffff)# 0x5484083C
@@ -587,7 +587,7 @@ HOOK @ $8077F190                # Address = $(ba + 0x0077F190)
 	srawi r6, r6, 19                # 0x7CC69E70
 	subi r6, r6, 0x14               # 0x38C6FFEC
 	cmpwi r6, 0x7d0                 # 0x2C0607D0
-	blt 0x8                         # 0x41A00008
+	blt+ 0x8                        # 0x41A00008
 	ori r4, r4, 0x1                 # 0x60840001
 	stw r4, 0x10(r1)                # 0x90810010
 	nop                             # 0x60000000
@@ -596,7 +596,7 @@ HOOK @ $8077F190                # Address = $(ba + 0x0077F190)
 ######################################################################
 Traction 2x on Non-Dash Character Momentum > Max Walking Speed [Magus]
 ######################################################################
-HOOK @ $80794D3C                # Address = $(ba + 0x00794D3C)
+HOOK @ $80794D3C                # Address = $(ba + 0x00794D3C) [in "updateEnergy/[soKineticEnergyNormal]/so_kinetic_energy_no" @ $80794AAC]
 {
 	lis r4, 0x8100                  # 0x3C808100
 	ori r4, r4, 0x0                 # 0x60840000
@@ -634,7 +634,7 @@ HOOK @ $80794D3C                # Address = $(ba + 0x00794D3C)
 ################################################################
 Dash Exit into Wait, Dash, and Taunt Keep Full Velocity [Magus]
 ################################################################
-HOOK @ $8084FFA4                # Address = $(ba + 0x0084FFA4)
+HOOK @ $8084FFA4                # Address = $(ba + 0x0084FFA4) [in "getParamCommonFloat/[ftCommonDataAccesser]/ft_common_data" @ $8084FF8C]
 {
 	stwu r1, -0x10(r1)              # 0x9421FFF0
 	stmw r30, 0x8(r1)               # 0xBFC10008
@@ -646,7 +646,7 @@ HOOK @ $8084FFA4                # Address = $(ba + 0x0084FFA4)
 	lis r30, 0x80b8                 # 0x3FC080B8
 	ori r30, r30, 0xb33c            # 0x63DEB33C
 	cmpw r3, r30                    # 0x7C03F000
-	bne 0x30                        # 0x40A20030
+	bne+ 0x30                       # 0x40A20030
 	cmpwi r28, 0x0                  # 0x2C1C0000
 	beq 0x18                        # 0x41820018
 	cmpwi r28, 0x3                  # 0x2C1C0003
@@ -666,7 +666,7 @@ HOOK @ $8084FFA4                # Address = $(ba + 0x0084FFA4)
 ###########################################
 Powershield Reflect Sets Variable [Magus]
 ###########################################
-HOOK @ $80840820                # Address = $(ba + 0x00840820)
+HOOK @ $80840820                # Address = $(ba + 0x00840820) [in "notifyEventCollisionReflectorCheck/[Fighter]/fighter.o" @ $808407FC]
 {
 	lis r12, 0x8180                 # 0x3D808180
 	lwz r4, 0x60(r3)                # 0x80830060
@@ -698,12 +698,12 @@ HOOK @ $80840820                # Address = $(ba + 0x00840820)
 ################################################
 GuardOn Animations Allow In Transition [Magus]
 ################################################
-HOOK @ $80874B34                # Address = $(ba + 0x00874B34)
+HOOK @ $80874B34                # Address = $(ba + 0x00874B34) [in "updateShield/[ftStatusUniqProcessGuardFunc]/ft_status_uni" @ $808749B4]
 {
 	lwz r12, 0x7c(r27)              # 0x819B007C
 	lhz r12, 0x36(r12)              # 0xA18C0036
 	cmpwi r12, 0x1a                 # 0x2C0C001A
-	bne 0x18                        # 0x40A20018
+	bne+ 0x18                       # 0x40A20018
 	lwz r12, 0x14(r27)              # 0x819B0014
 	lwz r12, 0x40(r12)              # 0x818C0040
 	lis r11, 0x4080                 # 0x3D604080
@@ -716,7 +716,7 @@ HOOK @ $80874B34                # Address = $(ba + 0x00874B34)
 #############################################################
 Jump Direction Determined Last Frame of Jump Squat [Magus]
 #############################################################
-HOOK @ $8086BBB8                # Address = $(ba + 0x0086BBB8)
+HOOK @ $8086BBB8                # Address = $(ba + 0x0086BBB8) [in "changeKineticSub/[ftKineticTransactor]/ft_kinetic_transac" @ $8086B6FC]
 {
 	lis r5, 0x9019                  # 0x3CA09019
 	ori r5, r5, 0xa158              # 0x60A5A158
@@ -739,29 +739,29 @@ HOOK @ $8086BBB8                # Address = $(ba + 0x0086BBB8)
 #############################################################
 Dream Land Wind Uses TopN-X for Collision Detection [Magus]
 #############################################################
-HOOK @ $80041D68                # Address = $(ba + 0x00041D68)
+HOOK @ $80041D68                # Address = $(ba + 0x00041D68) [in "checkIntersect/[clAABBox2D]/mt_coll2d.o" @ $80041D64]
 {
 	lfs f0, 0x0(r4)                 # 0xC0040000
 	lis r9, 0x8001                  # 0x3D208001
 	ori r9, r9, 0x1044              # 0x61291044
 	mflr r10                        # 0x7D4802A6
 	cmpw r9, r10                    # 0x7C095000
-	bne 0x1c                        # 0x40A2001C
+	bne+ 0x1c                       # 0x40A2001C
 	lis r7, 0x3d8f                  # 0x3CE03D8F
 	ori r7, r7, 0x5c29              # 0x60E75C29
 	lwz r8, 0x9fc(r3)               # 0x810309FC
 	cmpw r7, r8                     # 0x7C074000
-	bne 0x8                         # 0x40A20008
+	bne+ 0x8                        # 0x40A20008
 	lfs f0, -0xc(r4)                # 0xC004FFF4
 	nop                             # 0x60000000
 }
-HOOK @ $80041D98                # Address = $(ba + 0x00041D98)
+HOOK @ $80041D98                # Address = $(ba + 0x00041D98) [in "checkIntersect/[clAABBox2D]/mt_coll2d.o" @ $80041D64]
 {
 	lfs f0, 0x8(r4)                 # 0xC0040008
 	cmpw r9, r10                    # 0x7C095000
-	bne 0x10                        # 0x40A20010
+	bne+ 0x10                       # 0x40A20010
 	cmpw r7, r8                     # 0x7C074000
-	bne 0x8                         # 0x40A20008
+	bne+ 0x8                        # 0x40A20008
 	lfs f0, -0xc(r4)                # 0xC004FFF4
 	nop                             # 0x60000000
 }
@@ -780,7 +780,7 @@ Tripping Rate is 0 V2 [ds22, KirbyIsCool]
 ########################################################################
 Individual Stock Icons (info.pac) v2.6 50CC [ds22, wiiztec, DukeItOut]
 ########################################################################
-HOOK @ $800E2168                # Address = $(ba + 0x000E2168)
+HOOK @ $800E2168                # Address = $(ba + 0x000E2168) [in "setStockMarkColor/[IfPlayer]/if_player.o" @ $800E20CC]
 {
 	lwz r12, 0xe8(r1)               # 0x818100E8
 	lis r11, 0x9018                 # 0x3D609018
@@ -828,13 +828,13 @@ HOOK @ $800E2168                # Address = $(ba + 0x000E2168)
 	cmpw r12, r6                    # 0x7C0C3000
 	beq 0x14                        # 0x41820014
 	addi r29, r29, 0x10             # 0x3BBD0010
-	bc 16, 0,  -0x1c                # 0x4200FFE4
+	bc 17, 0,  -0x1c                # 0x4200FFE4
 	lis r29, 0x8045                 # 0x3FA08045
 	addi r29, r29, 0x56d8           # 0x3BBD56D8
 	mr r7, r12                      # 0x7D876378
 	lbz r12, 0x0(r29)               # 0x899D0000
 	cmpwi r12, 0x42                 # 0x2C0C0042
-	bne 0x8                         # 0x40A20008
+	bne+ 0x8                        # 0x40A20008
 	li r12, 0x25                    # 0x39800025
 	lbz r6, 0xed(r1)                # 0x88C100ED
 	cmpwi r9, 0xa5                  # 0x2C0900A5
@@ -851,7 +851,7 @@ HOOK @ $800E2168                # Address = $(ba + 0x000E2168)
 	stb r9, 0x9e(r10)               # 0x992A009E
 	mulli r12, r12, 0x32            # 0x1D8C0032
 	cmpwi r7, 0x2d                  # 0x2C07002D
-	bne 0x8                         # 0x40A20008
+	bne+ 0x8                        # 0x40A20008
 	li r12, 0x2328                  # 0x39802328
 	add r12, r12, r6                # 0x7D8C3214
 	addi r7, r12, 0x1               # 0x38EC0001
@@ -872,7 +872,7 @@ HOOK @ $800E2168                # Address = $(ba + 0x000E2168)
 }
 * 040E215C 60000000             # 32-Bit Write @ $(ba + 0x000E215C):  0x60000000
 * 040E2160 60000000             # 32-Bit Write @ $(ba + 0x000E2160):  0x60000000
-HOOK @ $8003D8B4                # Address = $(ba + 0x0003D8B4)
+HOOK @ $8003D8B4                # Address = $(ba + 0x0003D8B4) [in "loadResource/[gfResourceLoader]/gf_resource_loader.o" @ $8003D864]
 {
 	cmpwi r9, 0xb                   # 0x2C09000B
 	bne 0x18                        # 0x40820018
@@ -899,7 +899,7 @@ Menu Scroll Speeds Modifier [Magus]
 #################################################################
 [Legacy TE] Transforming Characters Switch Stocks [PyotrLuzhin]
 #################################################################
-HOOK @ $800E2090                # Address = $(ba + 0x000E2090)
+HOOK @ $800E2090                # Address = $(ba + 0x000E2090) [in "setStockFace/[IfPlayer]/if_player.o" @ $800E1ED8]
 {
 	li r7, 0x0                      # 0x38E00000
 	lwz r12, 0x94(r1)               # 0x81810094
@@ -943,7 +943,7 @@ HOOK @ $800E2090                # Address = $(ba + 0x000E2090)
 #####################################################################
 [Legacy TE] Team Glow CSS Toggle [PyotrLuzhin, Fracture, Yohan1044]
 #####################################################################
-HOOK @ $806895F4                # Address = $(ba + 0x006895F4)
+HOOK @ $806895F4                # Address = $(ba + 0x006895F4) [in "moveCoin/[muSelCharTask]/mu_selchar.o" @ $80689548]
 {
 	lwz r3, 0x1f4(r27)              # 0x807B01F4
 	lbz r3, 0x5c8(r3)               # 0x886305C8
@@ -953,7 +953,7 @@ HOOK @ $806895F4                # Address = $(ba + 0x006895F4)
 	stb r3, 0x1c4(r27)              # 0x987B01C4
 	mr r3, r27                      # 0x7F63DB78
 }
-HOOK @ $8068A498                # Address = $(ba + 0x0068A498)
+HOOK @ $8068A498                # Address = $(ba + 0x0068A498) [in "buttonProcInAllArea/[muSelCharTask]/mu_selchar.o" @ $8068A358]
 {
 	lis r12, 0x9019                 # 0x3D809019
 	lbz r4, -0x5f1c(r12)            # 0x888CA0E4
@@ -977,7 +977,7 @@ HOOK @ $8068A498                # Address = $(ba + 0x0068A498)
 	rlwinm r4, r0, 27, 5, 31        # (Mask: 0xffffffe0)# 0x5404D97E
 	nop                             # 0x60000000
 }
-HOOK @ $80689B90                # Address = $(ba + 0x00689B90)
+HOOK @ $80689B90                # Address = $(ba + 0x00689B90) [in "buttonProc/[muSelCharTask]/mu_selchar.o" @ $806898C0]
 {
 	lbz r0, 0x5c8(r24)              # 0x881805C8
 	cmpwi r0, 0x0                   # 0x2C000000
@@ -985,7 +985,7 @@ HOOK @ $80689B90                # Address = $(ba + 0x00689B90)
 	lis r12, 0x9019                 # 0x3D809019
 	lbz r0, -0x5f1c(r12)            # 0x880CA0E4
 }
-HOOK @ $8069A2E0                # Address = $(ba + 0x0069A2E0)
+HOOK @ $8069A2E0                # Address = $(ba + 0x0069A2E0) [in "incCharColorNo/[muSelCharPlayerArea]/mu_selchar_player_ar" @ $8069A22C]
 {
 	lbz r27, 0x5c8(r8)              # 0x8B6805C8
 	cmpwi r27, 0x0                  # 0x2C1B0000
@@ -993,7 +993,7 @@ HOOK @ $8069A2E0                # Address = $(ba + 0x0069A2E0)
 	lis r12, 0x9019                 # 0x3D809019
 	lbz r27, -0x5f1c(r12)           # 0x8B6CA0E4
 }
-HOOK @ $8069A3F0                # Address = $(ba + 0x0069A3F0)
+HOOK @ $8069A3F0                # Address = $(ba + 0x0069A3F0) [in "decCharColorNo/[muSelCharPlayerArea]/mu_selchar_player_ar" @ $8069A340]
 {
 	lbz r27, 0x5c8(r8)              # 0x8B6805C8
 	cmpwi r27, 0x0                  # 0x2C1B0000
@@ -1001,7 +1001,7 @@ HOOK @ $8069A3F0                # Address = $(ba + 0x0069A3F0)
 	lis r12, 0x9019                 # 0x3D809019
 	lbz r27, -0x5f1c(r12)           # 0x8B6CA0E4
 }
-HOOK @ $806974D0                # Address = $(ba + 0x006974D0)
+HOOK @ $806974D0                # Address = $(ba + 0x006974D0) [in "setCharPic/[muSelCharPlayerArea]/mu_selchar_player_area_o" @ $8069742C]
 {
 	cmpwi r27, 0x0                  # 0x2C1B0000
 	beq 0x10                        # 0x41820010
@@ -1009,7 +1009,7 @@ HOOK @ $806974D0                # Address = $(ba + 0x006974D0)
 	lbz r12, -0x5f1c(r12)           # 0x898CA0E4
 	cmpwi r12, 0x0                  # 0x2C0C0000
 }
-HOOK @ $80684968                # Address = $(ba + 0x00684968)
+HOOK @ $80684968                # Address = $(ba + 0x00684968) [in "setToGlobal/[muSelCharTask]/mu_selchar.o" @ $806846E0]
 {
 	lbz r0, 0x5c8(r26)              # 0x881A05C8
 	cmpwi r0, 0x0                   # 0x2C000000
@@ -1017,7 +1017,7 @@ HOOK @ $80684968                # Address = $(ba + 0x00684968)
 	lis r12, 0x9019                 # 0x3D809019
 	lbz r0, -0x5f1c(r12)            # 0x880CA0E4
 }
-HOOK @ $806D5C28                # Address = $(ba + 0x006D5C28)
+HOOK @ $806D5C28                # Address = $(ba + 0x006D5C28) [in "fixSubcolor/[scMelee]/sc_melee.o" @ $806D5B98]
 {
 	lis r12, 0x9019                 # 0x3D809019
 	lbz r12, -0x5f1b(r12)           # 0x898CA0E5
@@ -1025,7 +1025,7 @@ HOOK @ $806D5C28                # Address = $(ba + 0x006D5C28)
 	beq 0x8                         # 0x41820008
 	stb r0, 0xa(r28)                # 0x981C000A
 }
-HOOK @ $8081F4B8                # Address = $(ba + 0x0081F4B8)
+HOOK @ $8081F4B8                # Address = $(ba + 0x0081F4B8) [in "startGame/[ftEntry]/ft_entry.o" @ $8081EDC4]
 {
 	addi r11, r1, 0x58              # 0x39610058
 	lis r12, 0x9019                 # 0x3D809019
@@ -1061,7 +1061,7 @@ HOOK @ $8081F4B8                # Address = $(ba + 0x0081F4B8)
 	mtlr r0                         # 0x7C0803A6
 	nop                             # 0x60000000
 }
-HOOK @ $8068EEF4                # Address = $(ba + 0x0068EEF4)
+HOOK @ $8068EEF4                # Address = $(ba + 0x0068EEF4) [in "setMeleeKind/[muSelCharTask]/mu_selchar_obj.o" @ $8068ED8C]
 {
 	fmr f1, f31                     # 0xFC20F890
 	lis r12, 0x9019                 # 0x3D809019
@@ -1073,7 +1073,7 @@ HOOK @ $8068EEF4                # Address = $(ba + 0x0068EEF4)
 	lfs f1, 0x0(r2)                 # 0xC0220000
 	nop                             # 0x60000000
 }
-HOOK @ $8068A494                # Address = $(ba + 0x0068A494)
+HOOK @ $8068A494                # Address = $(ba + 0x0068A494) [in "buttonProcInAllArea/[muSelCharTask]/mu_selchar.o" @ $8068A358]
 {
 	lbz r4, 0x5cb(r31)              # 0x889F05CB
 	lbz r12, 0x5c8(r31)             # 0x899F05C8
@@ -1101,7 +1101,7 @@ HOOK @ $80684480                # Address = $(ba + 0x00684480)
 	stwu r1, -0x30(r1)              # 0x9421FFD0
 	nop                             # 0x60000000
 }
-HOOK @ $80686C04                # Address = $(ba + 0x00686C04)
+HOOK @ $80686C04                # Address = $(ba + 0x00686C04) [in "initDisp/[muSelCharTask]/mu_selchar.o" @ $806862B4]
 {
 	lis r3, 0x805a                  # 0x3C60805A
 	lwz r3, 0xe0(r3)                # 0x806300E0
@@ -1120,7 +1120,7 @@ HOOK @ $80686C04                # Address = $(ba + 0x00686C04)
 [Legacy TE] Melee Random v2 (Custom Random) [Sammi Husky]
 ##########################################################
 * 0468AE20 60000000             # 32-Bit Write @ $(ba + 0x0068AE20):  0x60000000
-HOOK @ $8068AE24                # Address = $(ba + 0x0068AE24)
+HOOK @ $8068AE24                # Address = $(ba + 0x0068AE24) [in "buttonProcInFaceArea/[muSelCharTask]/mu_selchar.o" @ $8068ADC4]
 {
 	cmpwi r27, 0x28                 # 0x2C1B0028
 	bne 0x1f4                       # 0x408201F4
@@ -1255,7 +1255,7 @@ HOOK @ $8068AE24                # Address = $(ba + 0x0068AE24)
 ###############################################
 Franklin Badge SFX Modifier V2 [Magus, ds22]
 ###############################################
-HOOK @ $80840824                # Address = $(ba + 0x00840824)
+HOOK @ $80840824                # Address = $(ba + 0x00840824) [in "notifyEventCollisionReflectorCheck/[Fighter]/fighter.o" @ $808407FC]
 {
 	cmpwi r5, 0x1a                  # 0x2C05001A
 	blt 0x14                        # 0x41800014
@@ -1269,7 +1269,7 @@ HOOK @ $80840824                # Address = $(ba + 0x00840824)
 ##################################
 Team Coloured Shields V2 [ds22]
 ##################################
-HOOK @ $8081DEEC                # Address = $(ba + 0x0081DEEC)
+HOOK @ $8081DEEC                # Address = $(ba + 0x0081DEEC) [in "init/[ftEntry]/ft_entry.o" @ $8081DCB8]
 {
 	cmpwi r23, 0x2                  # 0x2C170002
 	beq 0xc                         # 0x4182000C
@@ -1282,13 +1282,13 @@ HOOK @ $8081DEEC                # Address = $(ba + 0x0081DEEC)
 ###################################
 Team Colour Shade Check Fix [ds22]
 ###################################
-HOOK @ $806D5BE0                # Address = $(ba + 0x006D5BE0)
+HOOK @ $806D5BE0                # Address = $(ba + 0x006D5BE0) [in "fixSubcolor/[scMelee]/sc_melee.o" @ $806D5B98]
 {
 	mr r31, r3                      # 0x7C7F1B78
 	mr r12, r11                     # 0x7D6C5B78
 	nop                             # 0x60000000
 }
-HOOK @ $806D5C08                # Address = $(ba + 0x006D5C08)
+HOOK @ $806D5C08                # Address = $(ba + 0x006D5C08) [in "fixSubcolor/[scMelee]/sc_melee.o" @ $806D5B98]
 {
 	cmpwi r3, 0xd                   # 0x2C03000D
 	bne 0xc                         # 0x4082000C
@@ -1296,7 +1296,7 @@ HOOK @ $806D5C08                # Address = $(ba + 0x006D5C08)
 	beq 0x8                         # 0x41820008
 	cmpw r12, r11                   # 0x7C0C5800
 }
-HOOK @ $80952B00                # Address = $(ba + 0x00952B00)
+HOOK @ $80952B00                # Address = $(ba + 0x00952B00) [in "exchangeGmCharacterKindToMuCharKind/[stOperatorRule]/st_o" @ $80952AE0]
 {
 	mr r11, r3                      # 0x7C6B1B78
 	lis r4, 0x80b3                  # 0x3C8080B3
@@ -1332,11 +1332,11 @@ PT Pokemon Have Final Smashes & FS Characters Don't [ds22]
 * 0481DF18 3804FFFD             # 32-Bit Write @ $(ba + 0x0081DF18):  0x3804FFFD
 * 0481DF84 380000EC             # 32-Bit Write @ $(ba + 0x0081DF84):  0x380000EC
 * 04AD8BB4 17171717             # 32-Bit Write @ $(ba + 0x00AD8BB4):  0x17171717
-HOOK @ $8081DF6C                # Address = $(ba + 0x0081DF6C)
+HOOK @ $8081DF6C                # Address = $(ba + 0x0081DF6C) [in "init/[ftEntry]/ft_entry.o" @ $8081DCB8]
 {
 	li r0, 0x5c                     # 0x3800005C
 	cmpwi r4, 0x2d                  # 0x2C04002D
-	bne 0x8                         # 0x40A20008
+	bne+ 0x8                        # 0x40A20008
 	li r0, 0x7c                     # 0x3800007C
 	nop                             # 0x60000000
 }
@@ -1344,44 +1344,44 @@ HOOK @ $8081DF6C                # Address = $(ba + 0x0081DF6C)
 #######################################################
 Independent Pokemon Engine HTP, Classic & MMS [ds22]
 #######################################################
-HOOK @ $806DDDF4                # Address = $(ba + 0x006DDDF4)
+HOOK @ $806DDDF4                # Address = $(ba + 0x006DDDF4) [in "demoSetup/[sqTitle]/sq_title.o" @ $806DDBE0]
 {
 	cmpwi r3, 0x1d                  # 0x2C03001D
-	bne 0x8                         # 0x40A20008
+	bne+ 0x8                        # 0x40A20008
 	li r3, 0x1e                     # 0x3860001E
 	cmpwi r3, 0x1f                  # 0x2C03001F
-	bne 0x8                         # 0x40A20008
+	bne+ 0x8                        # 0x40A20008
 	li r3, 0x20                     # 0x38600020
 	cmpwi r3, 0x21                  # 0x2C030021
-	bne 0x8                         # 0x40A20008
+	bne+ 0x8                        # 0x40A20008
 	li r3, 0x22                     # 0x38600022
 	stb r3, 0x98(r29)               # 0x987D0098
 	nop                             # 0x60000000
 }
-HOOK @ $806E1178                # Address = $(ba + 0x006E1178)
+HOOK @ $806E1178                # Address = $(ba + 0x006E1178) [in "setStageSetting/[sqSingleSimple]/sq_single_simple.o" @ $806E0BC8]
 {
 	cmpwi r18, 0x1d                 # 0x2C12001D
-	bne 0x8                         # 0x40A20008
+	bne+ 0x8                        # 0x40A20008
 	li r18, 0x1e                    # 0x3A40001E
 	cmpwi r18, 0x1f                 # 0x2C12001F
-	bne 0x8                         # 0x40A20008
+	bne+ 0x8                        # 0x40A20008
 	li r18, 0x20                    # 0x3A400020
 	cmpwi r18, 0x21                 # 0x2C120021
-	bne 0x8                         # 0x40A20008
+	bne+ 0x8                        # 0x40A20008
 	li r18, 0x22                    # 0x3A400022
 	stb r18, 0x98(r21)              # 0x9A550098
 	nop                             # 0x60000000
 }
-HOOK @ $8095E184                # Address = $(ba + 0x0095E184)
+HOOK @ $8095E184                # Address = $(ba + 0x0095E184) [in "putCorpsPutMember/[stOperatorRuleKumite]/st_operator_rule" @ $8095E138]
 {
 	cmpwi r31, 0x1d                 # 0x2C1F001D
-	bne 0x8                         # 0x40A20008
+	bne+ 0x8                        # 0x40A20008
 	li r31, 0x1e                    # 0x3BE0001E
 	cmpwi r31, 0x1f                 # 0x2C1F001F
-	bne 0x8                         # 0x40A20008
+	bne+ 0x8                        # 0x40A20008
 	li r31, 0x20                    # 0x3BE00020
 	cmpwi r31, 0x21                 # 0x2C1F0021
-	bne 0x8                         # 0x40A20008
+	bne+ 0x8                        # 0x40A20008
 	li r31, 0x22                    # 0x3BE00022
 	stb r31, 0x0(r3)                # 0x9BE30000
 	nop                             # 0x60000000
@@ -1397,7 +1397,7 @@ Independent Pokemon Save Data Engine + no wreck My Music v2 [spunit262]
 ############################
 Aura Sphere Cancel [ds22]
 ############################
-HOOK @ $80AA658C                # Address = $(ba + 0x00AA658C)
+HOOK @ $80AA658C                # Address = $(ba + 0x00AA658C) [in "exitStatus/[ftLucarioStatusUniqProcessSpecialN]/ft_lucari" @ $80AA6408]
 {
 	cmpwi r26, 0x1a                 # 0x2C1A001A
 	beq 0x30                        # 0x41820030
@@ -1425,7 +1425,7 @@ DDD Result Name Modifier [ds22]
 #######################################################
 Snake's U-Smash can Have Horizontal Velocity [Magus]
 #######################################################
-HOOK @ $808E6FA0                # Address = $(ba + 0x008E6FA0)
+HOOK @ $808E6FA0                # Address = $(ba + 0x008E6FA0) [in "getSpeed/[wnKineticEnergyGravity]/wn_kinetic_energy_gravi" @ $808E6F94]
 {
 	lwz r12, 0x68(r3)               # 0x81830068
 	cmpwi r12, 0x2329               # 0x2C0C2329

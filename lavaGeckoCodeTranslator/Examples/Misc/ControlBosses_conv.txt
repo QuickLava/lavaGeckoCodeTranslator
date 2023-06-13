@@ -9,7 +9,7 @@ HOOK @ $810F1F3C                # Address = $(po + 0x00000000)
 	rlwinm r0, r0, 16, 16, 31       # (Mask: 0xffff0000)# 0x5400843E
 	stw r0, 0x70(r2)                # 0x90020070
 }
-HOOK @ $8077F780                # Address = $(ba + 0x0077F780)
+HOOK @ $8077F780                # Address = $(ba + 0x0077F780) [in "changeStatusRequest/[soStatusModuleImpl]/so_status_module" @ $8077F5A8]
 {
 	subf r6, r31, r30               # 0x7CDFF050
 	cmpwi r6, 0x414c                # 0x2C06414C

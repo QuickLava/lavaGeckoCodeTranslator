@@ -166,16 +166,16 @@ ignore_if_6100:
 op nop @ $809036cc
 
 Custom AI Function Loader [Magus]
-HOOK @ $8091E108                # Address = $(ba + 0x0091E108)
+HOOK @ $8091E108                # Address = $(ba + 0x0091E108) [in "get_script_value/[aiAct]/ai_act.o" @ $8091DFC4]
 {
 	cmplwi r0, 0x2e                 # 0x2800002E
-	ble 0x144                       # 0x40A10144
+	ble+ 0x144                      # 0x40A10144
 	rlwinm r7, r31, 24, 31, 31      # (Mask: 0x00000100)# 0x57E7C7FE
 	lis r12, 0x8058                 # 0x3D808058
 	ori r12, r12, 0x47c             # 0x618C047C
 	subi r5, r31, 0x102e            # 0x38BFEFD2
 	cmpwi r7, 0x1                   # 0x2C070001
-	bne 0x8                         # 0x40A20008
+	bne+ 0x8                        # 0x40A20008
 	subi r5, r5, 0x100              # 0x38A5FF00
 	rlwinm r5, r5, 2, 0, 29         # (Mask: 0x3fffffff)# 0x54A5103A
 	lwz r6, 0x0(r12)                # 0x80CC0000
@@ -191,7 +191,7 @@ HOOK @ $8091E108                # Address = $(ba + 0x0091E108)
 	lwz r11, 0x0(r11)               # 0x816B0000
 	lwz r10, 0x4(r11)               # 0x814B0004
 	cmpw r10, r5                    # 0x7C0A2800
-	bne -0xc                        # 0x4082FFF4
+	bne+ -0xc                       # 0x4082FFF4
 	lwz r5, 0x20(r11)               # 0x80AB0020
 	lwz r5, 0x60(r5)                # 0x80A50060
 	cmpwi r7, 0x1                   # 0x2C070001
@@ -205,7 +205,7 @@ HOOK @ $8091E108                # Address = $(ba + 0x0091E108)
 	addi r6, r6, 0x140              # 0x38C60140
 	lwz r0, 0xac(r3)                # 0x800300AC
 	cmpwi r0, 0x10                  # 0x2C000010
-	bne 0x8                         # 0x40A20008
+	bne+ 0x8                        # 0x40A20008
 	addi r6, r6, 0x280              # 0x38C60280
 	lis r11, 0x80b8                 # 0x3D6080B8
 	lwz r11, 0x7c28(r11)            # 0x816B7C28
@@ -215,9 +215,9 @@ HOOK @ $8091E108                # Address = $(ba + 0x0091E108)
 	addi r11, r11, 0x244            # 0x396B0244
 	lwz r10, 0x2c(r11)              # 0x814B002C
 	cmpw r10, r6                    # 0x7C0A3000
-	bne -0xc                        # 0x4082FFF4
+	bne+ -0xc                       # 0x4082FFF4
 	cmpwi r0, 0x10                  # 0x2C000010
-	bne 0x8                         # 0x40A20008
+	bne+ 0x8                        # 0x40A20008
 	addi r11, r11, 0x8              # 0x396B0008
 	mr r6, r5                       # 0x7CA62B78
 	lwz r5, 0x34(r11)               # 0x80AB0034
@@ -423,7 +423,7 @@ Custom AI Functions [Magus]
 * 3949FFB5 4E800020             # 	0x39, 0x49, 0xFF, 0xB5, 0x4E, 0x80, 0x00, 0x20
 
 Custom AI Requirement Loader[Bero]
-HOOK @ $8091E554                # Address = $(ba + 0x0091E554)
+HOOK @ $8091E554                # Address = $(ba + 0x0091E554) [in "if_chk/[aiAct]/ai_act.o" @ $8091E4CC]
 {
 	cmplwi r0, 0x1f                 # 0x2800001F
 	ble 0x54                        # 0x40810054
@@ -482,7 +482,7 @@ req IsStage : 0x1021 ID[Bero]
 * 3B800000 4E800020             # 	0x3B, 0x80, 0x00, 0x00, 0x4E, 0x80, 0x00, 0x20
 
 Custom AI Command Loader[Bero]
-HOOK @ $80917454                # Address = $(ba + 0x00917454)
+HOOK @ $80917454                # Address = $(ba + 0x00917454) [in "update/[aiAct]/ai_act.o" @ $80917190]
 {
 	cmplwi r4, 0x32                 # 0x28040032
 	ble 0x4c                        # 0x4081004C
@@ -560,7 +560,7 @@ CPU falls from respawn plane when Turbo[Bero]
 * 483835E4 00000000             # 	0x48, 0x38, 0x35, 0xE4, 0x00, 0x00, 0x00, 0x00
 
 Ledge hanging/Lying routine injection(ledge:0x2060, lying:0x2070)[Bero]
-HOOK @ $809091E4                # Address = $(ba + 0x009091E4)
+HOOK @ $809091E4                # Address = $(ba + 0x009091E4) [in "md_down/[aiInput]/ai_input.o" @ $809091A0]
 {
 	mr r28, r3                      # 0x7C7C1B78
 	lbz r4, 0x1ba(r28)              # 0x889C01BA
