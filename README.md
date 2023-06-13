@@ -11,11 +11,14 @@ The same rules as above apply for translating any raw Gecko code within existing
 
 Please note, though, that this program was designed around converting pure hex Gecko code, not the combination of pure hex and GCTRM syntax code often found in more modern source code files. As such, while the program's output is often correct when operating on mixed files like these, converting the code in such files to hex (eg. by compiling the file with GCTRM, and translating the resulting "codeset.txt" file instead) before attempting to translate them may grant more consistently accurate results.
 
-## Important Notes, Warnings, and Shortcomings
-### Inaccurate Compilation of Branch Prediction Hints
-When compiling translated PPC output from this program via GCTRM, it is common that branch instructions which branch backwards will incorrectly take on negative branch prediction hints (equivalent to suffixing the instruction's mnemonic with a "-" sign). This appears to be an inconsistency within GCTRM itself, rather than with this program.
-For that reason, if you compile both the original source file and the translated output, and compare the resulting .gct files, it's likely that you'll find frequent single-byte differences between the two (eg. things like "0x40***A0***0000" in the source file turning into  "0x40***80***0000") which result from that negative branch hint being applied. This is normal, and shouldn't meaningfully affect how the resulting code actually functions.
+## Using Dolphin Map Files to Improve Output
+This program's translation output can actually be augmented a bit if you can supply a Dolphin-compatible .map file for it to reference!
+Currently, the primary benefit to doing this is that it allows the program to specify what function each translated HOOK type code actually hooks, though in the future this functionality may expand to provide further benefit.
 
+To do this, simply copy the relevant game's .map file into the same folder as the program executable, and rename it to "symbols.map". Afterwards, for as long as the file is there, any translated output will use that file as reference.
+Alternatively, you can drag a .map file onto the executable along with any files you wish to translate (or specify a .map file as a command line argument), which will have the program translate those files with the provided .map instead, ignoring the "symbols.map" file in the program directory if one exists.
+
+## Important Notes, Warnings, and Shortcomings
 ### Translation Output for Embedded Data
 Some codes, along with their actual Gecko code, additionally embed within themselves blocks of raw hex data. While this program *can* successfully identify some common means of embedding data in this way (eg. skipping over embedded data via Gecko Goto statements), it is sometimes the case that the program will fail to identify blocks like this, interpretting them instead as blocks of PPC or Gecko code.
 If you encounter situations like these, do please send them my way, and I'll see what I can do to improve the program's embed detection to account for these misses. Where these embed blocks do appear, you'll find them labeled "DATA_EMBED", with a note specifying how many bytes long the embed itself is.
@@ -36,7 +39,7 @@ Additionally, in the case that the data *is* all printable characters, the progr
 Lastly, the output will always note how many bytes long the data is, and (in the event that more than one null-terminated string is found) will specify how many individual strings are contained in the data as well. 
 
 ### Line-final Comments on Gecko Hex Code
-Currently, if the program translates a line of Gecko code which ends with a comment, the translated output will overwrite that comment with its own annotation for the line. This may be fixed at some point in the future, though there are no concrete plans to tackle this as of writing this.
+Currently, if the program translates a line of Gecko code which ends with a comment, the translated output will overwrite that comment with its own annotation for the line. This may be fixed at some point in the future, though there are no concrete plans to tackle this at the time of writing.
 
 ## Final Notes
 While I have of course done my best to ensure that this program's translations are as accurate as possible, I certainly cannot guarantee that it will never make any mistakes.
