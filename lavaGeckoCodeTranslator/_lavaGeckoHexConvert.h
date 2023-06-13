@@ -8,7 +8,7 @@
 
 namespace lava::gecko
 {
-	// lavaGeckoHexConvert v1.0.2 - A utility for annotating raw Gecko hex code with descriptive comments, and converting that hex
+	// lavaGeckoHexConvert v1.0.5 - A utility for annotating raw Gecko hex code with descriptive comments, and converting that hex
 	// into GCTRM compliant syntax where possible. Requires lavaASMHexConvert to function.
 	// Based Directly on Info From:
 	// - "WiiRD Code Database: Gecko Codetype Documentation"

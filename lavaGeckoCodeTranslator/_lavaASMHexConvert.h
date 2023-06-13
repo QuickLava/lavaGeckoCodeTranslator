@@ -14,7 +14,7 @@
 
 namespace lava::ppc
 {
-	// lavaASMHexConvert v1.0.2 - A utility for disassembling 32-bit IBM PowerPC Assembly Instruction Hex into readable PPC ASM.
+	// lavaASMHexConvert v1.0.5 - A utility for disassembling 32-bit IBM PowerPC Assembly Instruction Hex into readable PPC ASM.
 	// This library provides support for the 32-bit PPC ASM instruction set, along with most additional instructions introduced by
 	// or required by the Broadway instruction set (Paired Single instructions being the most significant addition from that set).
 	// It offers no support for 64-bit exclusive instructions whatsoever, nor for any optional instructions not used in the Broadway
