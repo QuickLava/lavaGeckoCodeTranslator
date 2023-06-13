@@ -106,6 +106,7 @@ namespace lava
 		}
 		return lengthIn + padLength;
 	}
+	std::vector<std::string> splitString(const std::string& sourceStr, std::string delimiter, std::size_t maxSplits = SIZE_MAX);
 }
 
 #endif

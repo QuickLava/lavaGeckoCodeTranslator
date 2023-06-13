@@ -252,12 +252,19 @@ namespace lava::ppc
 	struct mapSymbol
 	{
 		std::string symbolName = "";
-		unsigned long symbolStart = ULONG_MAX;
-		unsigned long symbolEnd = ULONG_MAX;
+		unsigned long physicalAddr = ULONG_MAX;
+		unsigned long symbolSize = ULONG_MAX;
+		unsigned long virtualAddr = ULONG_MAX;
+		unsigned long fileOff = ULONG_MAX;
+		unsigned long alignVal = ULONG_MAX;
+		// Calc'd, not directly recorded in map files
+		unsigned long physicalEnd = ULONG_MAX;
+		unsigned long virtualEnd = ULONG_MAX;
 
 		mapSymbol() {};
-		mapSymbol(std::string symbolNameIn, unsigned long symbolStartIn, unsigned long symbolEndIn) : 
-			symbolName(symbolNameIn), symbolStart(symbolStartIn), symbolEnd(symbolEndIn) {};
+		mapSymbol(std::string symbolNameIn, unsigned long physicalAddrIn, unsigned long symbolSizeIn, unsigned long virtualAddrIn = ULONG_MAX, unsigned long fileOffIn = ULONG_MAX, unsigned long alignValIn = ULONG_MAX);
+
+		unsigned long positionWithinSymbol(unsigned long addressIn);
 	};
 	extern std::map<unsigned long, mapSymbol> mapSymbolStartsToStructs;
 	bool parseMapFile(std::istream& inputStreamIn);

@@ -1652,7 +1652,7 @@ namespace lava::gecko
 					lava::ppc::mapSymbol* parentSymbol = lava::ppc::getSymbolFromAddress(inferredHookAddress);
 					if (parentSymbol != nullptr)
 					{
-						commentString << " [in \"" << parentSymbol->symbolName << "\"]";
+						commentString << " [in \"" << parentSymbol->symbolName << "\" @ $" << lava::numToHexStringWithPadding(parentSymbol->virtualAddr, 8) << "]";
 					}
 					printStringWithComment(outputStreamIn, outputString, commentString.str(), 1);
 				}

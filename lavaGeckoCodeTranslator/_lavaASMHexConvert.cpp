@@ -2498,7 +2498,6 @@ namespace lava::ppc
 				}
 			}
 
-			// Remember to come back and fix this, it's currently set up to force trigger reservations for testing purposes lol
 			if (targetInstruction != nullptr && targetInstruction->getArgLayoutPtr()->validateReservedArgs(hexIn))
 			{
 				result << targetInstruction->getArgLayoutPtr()->conversionFunc(targetInstruction, hexIn);
@@ -2558,6 +2557,29 @@ namespace lava::ppc
 
 	// MAP File Processing
 	std::map<unsigned long, mapSymbol> mapSymbolStartsToStructs{};
+	mapSymbol::mapSymbol(std::string symbolNameIn, unsigned long physicalAddrIn, unsigned long symbolSizeIn, unsigned long virtualAddrIn, unsigned long fileOffIn, unsigned long alignValIn)
+	{
+		symbolName = symbolNameIn;
+		physicalAddr = physicalAddrIn;
+		symbolSize = symbolSizeIn;
+		virtualAddr = (virtualAddrIn != ULONG_MAX) ? virtualAddrIn : physicalAddr;
+		fileOff = fileOffIn;
+		alignVal = alignValIn;
+		physicalEnd = physicalAddr + symbolSize;
+		virtualEnd = virtualAddr + symbolSize;
+	};
+	unsigned long mapSymbol::positionWithinSymbol(unsigned long addressIn)
+	{
+		unsigned long result = ULONG_MAX;
+
+		if (addressIn >= virtualAddr && addressIn < virtualEnd)
+		{
+			result = addressIn - virtualAddr;
+		}
+
+		return result;
+	}
+
 	bool parseMapFile(std::istream& inputStreamIn)
 	{
 		bool result = 0;
@@ -2565,49 +2587,60 @@ namespace lava::ppc
 		if (inputStreamIn.good())
 		{
 			std::string currentLine("");
-
-			unsigned long symbolStartPos = ULONG_MAX;
-			unsigned long symbolLen = ULONG_MAX;
-			std::string symbolString("");
-			std::string commentChars = "/#.";
-
+			std::string commentChars = "/#";
 			while (std::getline(inputStreamIn, currentLine))
 			{
+				// Skip if the line is empty
+				if (currentLine.empty()) continue;
+
+				// Scrub leading and trailing whitespace chars
+				currentLine = currentLine.substr(currentLine.find_first_not_of(" \t"));
+				currentLine = currentLine.substr(0, currentLine.find_last_not_of(" \t") + 1);
+				// If the resulting line isn't either empty or commented out
 				if (!currentLine.empty() && commentChars.find(currentLine[0]) == std::string::npos)
 				{
-					symbolStartPos = ULONG_MAX;
-					symbolLen = ULONG_MAX;
-					symbolString = "";
+					// Split line into space-delimited segments
+					// Also, we allow up to seven segments because that allows for the max of four primary numerical args, and the optional alignment value,
+					// then additionally (in the event it has spaces in it) for the first string-delimited segment of what would be the symbol name to be
+					// split from the remainder of that string. This is desirable because sometimes additional information is included past the symbol name
+					// which doesn't matter for our purposes.
+					std::vector<std::string> lineSegments = lava::splitString(currentLine, " ", 7);
 
-					std::size_t spacePos = 0;
-					std::size_t spacePos_bak = 0;
-					unsigned long parsedNum = ULONG_MAX;
-
-					for (int i = 0; symbolString.empty() && spacePos < currentLine.size() && i < 5; i++, spacePos++)
+					// Record all the numerically parse-able arguments in the line.
+					std::vector<unsigned long> parsedNumSegments{};
+					for (std::size_t i = 0; i < lineSegments.size(); i++)
 					{
-						spacePos_bak = spacePos;
-						spacePos = currentLine.find(' ', spacePos_bak);
-
-						parsedNum = lava::stringToNum<unsigned long>(currentLine.substr(spacePos_bak, spacePos - spacePos_bak), 0, ULONG_MAX, 1);
-						currentLine.substr(spacePos_bak, spacePos - spacePos_bak);
+						// Try parsing the number...
+						std::size_t parsedNum = lava::stringToNum<unsigned long>(lineSegments[i], 0, ULONG_MAX, 1);
+						// ... and if it parses successfully...
 						if (parsedNum != ULONG_MAX)
 						{
-							switch (i)
-							{
-							case 0: { symbolStartPos = parsedNum; break; }
-							case 1: { symbolLen = parsedNum; break; }
-							default: { break; }
-							}
+							// ... record it in the segments vector.
+							parsedNumSegments.push_back(parsedNum);
 						}
-						else if (i == 4)
+						else
 						{
-							symbolString = currentLine.substr(spacePos_bak, spacePos - spacePos_bak);
+							// Quit once we find a non-numeric argument.
+							break;
 						}
 					}
-					if (!symbolString.empty())
-					{
-						mapSymbolStartsToStructs[symbolStartPos] = { symbolString, symbolStartPos, symbolStartPos + symbolLen };
-					}
+
+					// Skip if there aren't at least 2 numeric elements, that's the minimum allowed in a map file format.
+					// Also require that the number of validly parsed numbers is less than the number of segments in the line, since
+					// we require that a name string be present at the end of the line, which shouldn't be parseable as a number.
+					if (parsedNumSegments.size() < 2 && parsedNumSegments.size() < lineSegments.size()) continue;
+
+					// Assign values based on the number of numeric elements *not including* the alignment value
+					bool hasAlignmentVal = parsedNumSegments.size() > 2 && parsedNumSegments.back() <= 0xF;
+					unsigned long effectiveColumnCount = parsedNumSegments.size() - hasAlignmentVal;
+					unsigned long physicalAddr = parsedNumSegments[0];
+					unsigned long symbolSize = parsedNumSegments[1];
+					unsigned long virtualAddr = (effectiveColumnCount > 2) ? parsedNumSegments[2] : ULONG_MAX;
+					unsigned long fileOff = (effectiveColumnCount > 3) ? parsedNumSegments[3] : ULONG_MAX;
+					unsigned long alignmentVal = (hasAlignmentVal) ? parsedNumSegments.back() : ULONG_MAX;
+					// Store the resulting values in the map.
+					mapSymbol symbObj(lineSegments[parsedNumSegments.size()], physicalAddr, symbolSize, virtualAddr, fileOff, alignmentVal);
+					mapSymbolStartsToStructs[symbObj.virtualAddr] = symbObj;
 				}
 			}
 
@@ -2632,13 +2665,20 @@ namespace lava::ppc
 	{
 		mapSymbol* result = nullptr;
 
-		if (!mapSymbolStartsToStructs.empty() && addressIn >= mapSymbolStartsToStructs.begin()->second.symbolStart && addressIn < mapSymbolStartsToStructs.rbegin()->second.symbolEnd)
+		if (!mapSymbolStartsToStructs.empty())
 		{
-			for (auto i = mapSymbolStartsToStructs.begin(); result == nullptr && i != mapSymbolStartsToStructs.end() && addressIn >= i->second.symbolStart; i++)
+			// Get the first symbol that starts after the address we're looking for.
+			auto nextHighestItr = mapSymbolStartsToStructs.lower_bound(addressIn);
+			// If there's a symbol *before* that one...
+			if (nextHighestItr != mapSymbolStartsToStructs.begin())
 			{
-				if (addressIn >= i->second.symbolStart && addressIn < i->second.symbolEnd)
+				// ... move back one symbol...
+				nextHighestItr--;
+				// ... and see if our address lies within that symbol.
+				if (nextHighestItr->second.positionWithinSymbol(addressIn) != ULONG_MAX)
 				{
-					result = &i->second;
+					// If so, that's our result.
+					result = &nextHighestItr->second;
 				}
 			}
 		}
