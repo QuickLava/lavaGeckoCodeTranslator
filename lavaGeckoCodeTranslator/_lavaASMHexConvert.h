@@ -173,6 +173,8 @@ namespace lava::ppc
 	};
 
 	// Utility
+	void printStringWithComment(std::ostream& outputStream, const std::string& primaryString, const std::string& commentString, bool printNewLine = 1, unsigned long relativeCommentLoc = 0x20, unsigned long commentIndentationLevel = 0x00);
+	std::string getStringWithComment(const std::string& primaryString, const std::string& commentString, unsigned long relativeCommentLoc = 0x20, unsigned long commentIndentationLevel = 0x00);
 	unsigned long extractInstructionArg(unsigned long hexIn, unsigned char startBitIndex, unsigned char length);
 	unsigned long getInstructionOpCode(unsigned long hexIn);
 
@@ -193,9 +195,9 @@ namespace lava::ppc
 
 		// First is Reserved Zero Mask, Second is Reserved One Mask (If Bit == 1, Must Respect Reservation)
 		void setArgumentReservations(std::vector<std::pair<char, asmInstructionArgResStatus>> reservationsIn);
-		unsigned long getSecOpMask();
-		bool validateReservedArgs(unsigned long instructionHexIn);
-		std::vector<unsigned long> splitHexIntoArguments(unsigned long instructionHexIn);
+		unsigned long getSecOpMask() const;
+		bool validateReservedArgs(unsigned long instructionHexIn) const;
+		std::vector<unsigned long> splitHexIntoArguments(unsigned long instructionHexIn) const;
 		unsigned char getArgLengthInBits(unsigned char argIndex) const;
 		asmInstructionArgResStatus getArgReservation(unsigned char argIndex) const;
 	};
@@ -244,7 +246,9 @@ namespace lava::ppc
 	extern std::map<unsigned short, asmPrOpCodeGroup> instructionDictionary;
 	asmPrOpCodeGroup* pushOpCodeGroupToDict(asmPrimaryOpCodes opCodeIn, unsigned char secOpCodeStart = UCHAR_MAX, unsigned char secOpCodeLength = UCHAR_MAX);
 	void buildInstructionDictionary();
+	asmInstruction* getInstructionPtrFromHex(unsigned long hexIn);
 	std::string convertInstructionHexToString(unsigned long hexIn);
+	std::vector<std::string> convertInstructionHexBlockToStrings(const std::vector<unsigned long>& hexVecIn, const std::set<std::string>& disallowedMnemonics = {}, std::size_t refsNeededForBranchLabel = SIZE_MAX, bool applyHexComments = 0);
 	bool summarizeInstructionDictionary(std::ostream& output);
 	bool summarizeInstructionDictionary(std::string outputFilepath);
 

@@ -178,31 +178,13 @@ namespace lava::gecko
 
 		return result;
 	}
-
 	void printStringWithComment(std::ostream& outputStream, const std::string& primaryString, const std::string& commentString, bool printNewLine = 1, unsigned long relativeCommentLoc = 0x20)
 	{
-		unsigned long originalFlags = outputStream.flags();
-		if (!commentString.empty())
-		{
-			std::size_t indentationLevel = activeRepeatStartLocations.size();
-			outputStream << std::left << std::setw(relativeCommentLoc) << primaryString << "# " << std::string(indentationLevel, '\t') << commentString;
-		}
-		else
-		{
-			outputStream << primaryString;
-		}
-		if (printNewLine)
-		{
-			outputStream << "\n";
-		}
-		outputStream.setf(originalFlags);
+		lava::ppc::printStringWithComment(outputStream, primaryString, commentString, printNewLine, relativeCommentLoc, activeRepeatStartLocations.size());
 	}
 	std::string getStringWithComment(const std::string& primaryString, const std::string& commentString, unsigned long relativeCommentLoc = 0x20)
 	{
-		static std::stringstream result("");
-		result.str("");
-		printStringWithComment(result, primaryString, commentString, 0, relativeCommentLoc);
-		return result.str();
+		return lava::ppc::getStringWithComment(primaryString, commentString, relativeCommentLoc, activeRepeatStartLocations.size());
 	}
 	std::size_t dumpUnannotatedHexToStream(std::istream& codeStreamIn, std::ostream& output, std::size_t linesToDump, std::string commentStr = "")
 	{
@@ -222,7 +204,7 @@ namespace lava::gecko
 			outputString = "* " + dumpStr;
 			lava::readNCharsFromStream(dumpStr, codeStreamIn, 0x8, 0);
 			outputString += " " + dumpStr;
-			printStringWithComment(output, outputString, commentStr, 1);
+			lava::gecko::printStringWithComment(output, outputString, commentStr, 1);
 
 			result += 0x10;
 			std::size_t bytesToDump = linesToDump * 0x10;
@@ -253,7 +235,7 @@ namespace lava::gecko
 		result = lava::ppc::convertInstructionHexToString(hexIn);
 		if (enableComment && !result.empty())
 		{
-			result = getStringWithComment(result, "0x" + lava::numToHexStringWithPadding(hexIn, 8));
+			result = lava::gecko::getStringWithComment(result, "0x" + lava::numToHexStringWithPadding(hexIn, 8));
 		}
 
 		return result;
@@ -327,7 +309,7 @@ namespace lava::gecko
 				break;
 			}
 			}
-			printStringWithComment(outputStreamIn, outputString, commentString.str(), 1);
+			lava::gecko::printStringWithComment(outputStreamIn, outputString, commentString.str(), 1);
 
 			result = codeStreamIn.tellg() - initialPos;
 		}
@@ -394,7 +376,7 @@ namespace lava::gecko
 				commentString << ", " << terminatorCount << " strings";
 			}
 			commentString << ") @ " << getAddressComponentString(signatureNum) << ":";
-			printStringWithComment(outputStreamIn, outputString, commentString.str(), 1);
+			lava::gecko::printStringWithComment(outputStreamIn, outputString, commentString.str(), 1);
 
 			// Loop through the rest of the output
 			std::size_t cursor = 0;
@@ -463,7 +445,7 @@ namespace lava::gecko
 						commentString << ", 0x" << lava::numToHexStringWithPadding(bytesToWrite[u + cursor], 2);
 					}
 				}
-				printStringWithComment(outputStreamIn, outputString, commentString.str(), 1);
+				lava::gecko::printStringWithComment(outputStreamIn, outputString, commentString.str(), 1);
 
 				cursor += 8;
 			}
@@ -537,14 +519,14 @@ namespace lava::gecko
 				break; 
 			}
 			}
-			printStringWithComment(outputStreamIn, outputString, commentString.str(), 1);
+			lava::gecko::printStringWithComment(outputStreamIn, outputString, commentString.str(), 1);
 
 			outputString = "* " + settingsWord + " " + valIncrWord;
 			commentString.str("");
 			commentString << "\tDo " << (numWrites + 1) << " write(s)";
 			commentString << ", Increment Addr by 0x" << lava::numToHexStringWithPadding(addressIncrValue, 4);
 			commentString << ", Increment Value by 0x" << lava::numToHexStringWithPadding(valIncrNum, 8);
-			printStringWithComment(outputStreamIn, outputString, commentString.str(), 1);
+			lava::gecko::printStringWithComment(outputStreamIn, outputString, commentString.str(), 1);
 
 			result = codeStreamIn.tellg() - initialPos;
 		}
@@ -602,7 +584,7 @@ namespace lava::gecko
 				commentStr << " 0x" << lava::numToHexStringWithPadding<unsigned short>(immNum & 0xFFFF, 4);
 			}
 
-			printStringWithComment(outputStreamIn, outputStr, commentStr.str(), 1);
+			lava::gecko::printStringWithComment(outputStreamIn, outputStr, commentStr.str(), 1);
 
 			result = codeStreamIn.tellg() - initialPos;
 		}
@@ -633,7 +615,7 @@ namespace lava::gecko
 			// Build and Print Line
 			outputString = "* " + signatureWord + " " + immWord;
 			commentString << codeTypeIn->name << ": Repeat " << (signatureNum & 0xFFFF) << " times, Store in b" << (immNum & 0xF);
-			printStringWithComment(outputStreamIn, outputString, commentString.str(), 1);
+			lava::gecko::printStringWithComment(outputStreamIn, outputString, commentString.str(), 1);
 
 			result = codeStreamIn.tellg() - initialPos;
 
@@ -671,7 +653,7 @@ namespace lava::gecko
 			// Before we print, signal that we're leaving a Repeat block (before print to un-indent this line).
 			activeRepeatStartLocations.pop();
 
-			printStringWithComment(outputStreamIn, outputString, commentString.str(), 1);
+			lava::gecko::printStringWithComment(outputStreamIn, outputString, commentString.str(), 1);
 
 			result = codeStreamIn.tellg() - initialPos;
 		}
@@ -702,7 +684,7 @@ namespace lava::gecko
 			// Start Building Lines
 			outputString = "* " + signatureWord + " " + immWord;
 			commentString << codeTypeIn->name << ": Jump to Addr. in b" << (immNum & 0xF) << " " << getCodeExecStatusString(signatureNum);
-			printStringWithComment(outputStreamIn, outputString, commentString.str(), 1);
+			lava::gecko::printStringWithComment(outputStreamIn, outputString, commentString.str(), 1);
 
 			result = codeStreamIn.tellg() - initialPos;
 		}
@@ -755,7 +737,7 @@ namespace lava::gecko
 				commentString << " Line(s)";
 			}
 			commentString << " " << getCodeExecStatusString(signatureNum);
-			printStringWithComment(outputStreamIn, outputString, commentString.str(), 1);
+			lava::gecko::printStringWithComment(outputStreamIn, outputString, commentString.str(), 1);
 
 			result = codeStreamIn.tellg() - initialPos;
 
@@ -1031,7 +1013,7 @@ namespace lava::gecko
 				// Note, we don't do anything to the targeted BAPO value here cuz we aren't changing it.
 			}
 
-			printStringWithComment(outputStreamIn, outputStr, commentStr.str(), 1);
+			lava::gecko::printStringWithComment(outputStreamIn, outputStr, commentStr.str(), 1);
 
 			result = codeStreamIn.tellg() - initialPos;
 
@@ -1071,7 +1053,7 @@ namespace lava::gecko
 			std::stringstream commentStr("");
 			commentStr << codeTypeIn->name << ": ";
 			// If we're setting BA
-			if ((signatureNum & signatureBaPoMask) == 0)
+			if ((signatureNum >> 0x18) == 0x46)
 			{
 				commentStr << "ba";
 				// We won't know the value for this, so invalidate.
@@ -1094,7 +1076,7 @@ namespace lava::gecko
 				commentStr << " - " << -addressOffset;
 			}
 
-			printStringWithComment(outputStreamIn, outputStr, commentStr.str(), 1);
+			lava::gecko::printStringWithComment(outputStreamIn, outputStr, commentStr.str(), 1);
 
 			result = codeStreamIn.tellg() - initialPos;
 
@@ -1232,7 +1214,7 @@ namespace lava::gecko
 				invalidateGeckoRegister(targetGeckoRegister);
 			}
 
-			printStringWithComment(outputStreamIn, outputStr, commentStr.str(), 1);
+			lava::gecko::printStringWithComment(outputStreamIn, outputStr, commentStr.str(), 1);
 
 			result = codeStreamIn.tellg() - initialPos;
 		}
@@ -1335,7 +1317,7 @@ namespace lava::gecko
 				// And don't invalidate the register value cuz it hasn't been altered at all.
 			}
 
-			printStringWithComment(outputStreamIn, outputStr, commentStr.str(), 1);
+			lava::gecko::printStringWithComment(outputStreamIn, outputStr, commentStr.str(), 1);
 
 			result = codeStreamIn.tellg() - initialPos;
 		}
@@ -1411,7 +1393,7 @@ namespace lava::gecko
 			}
 			commentStr << " " << rightHandString;
 
-			printStringWithComment(outputStreamIn, outputStr, commentStr.str(), 1);
+			lava::gecko::printStringWithComment(outputStreamIn, outputStr, commentStr.str(), 1);
 
 			result = codeStreamIn.tellg() - initialPos;
 		}
@@ -1471,7 +1453,7 @@ namespace lava::gecko
 			
 			commentStr << leftRightHandStr[0].str() << " to " << leftRightHandStr[1].str();
 
-			printStringWithComment(outputStreamIn, outputStr, commentStr.str(), 1);
+			lava::gecko::printStringWithComment(outputStreamIn, outputStr, commentStr.str(), 1);
 
 			result = codeStreamIn.tellg() - initialPos;
 		}
@@ -1544,7 +1526,7 @@ namespace lava::gecko
 			}
 			commentStr << " " << leftRightHandStr[1].str();
 
-			printStringWithComment(outputStreamIn, outputStr, commentStr.str(), 1);
+			lava::gecko::printStringWithComment(outputStreamIn, outputStr, commentStr.str(), 1);
 
 			result = codeStreamIn.tellg() - initialPos;
 		}
@@ -1601,7 +1583,7 @@ namespace lava::gecko
 				commentStr << " (and Reset Counter to Zero)";
 			}
 
-			printStringWithComment(outputStreamIn, outputStr, commentStr.str(), 1);
+			lava::gecko::printStringWithComment(outputStreamIn, outputStr, commentStr.str(), 1);
 
 			result = codeStreamIn.tellg() - initialPos;
 		}
@@ -1654,13 +1636,13 @@ namespace lava::gecko
 					{
 						commentString << " [in \"" << parentSymbol->symbolName << "\" @ $" << lava::numToHexStringWithPadding(parentSymbol->virtualAddr, 8) << "]";
 					}
-					printStringWithComment(outputStreamIn, outputString, commentString.str(), 1);
+					lava::gecko::printStringWithComment(outputStreamIn, outputString, commentString.str(), 1);
 				}
 				else
 				{
 					outputString = "* " + signatureWord + " " + lengthWord;
 					commentString << codeTypeIn->name << " (" << lengthNum << " line(s)) @ " << getAddressComponentString(signatureNum) << ":";
-					printStringWithComment(outputStreamIn, outputString, commentString.str(), 1);
+					lava::gecko::printStringWithComment(outputStreamIn, outputString, commentString.str(), 1);
 				}
 				break;
 			}
@@ -1694,7 +1676,7 @@ namespace lava::gecko
 					commentString << " Preceding";
 				}
 				commentString << " " << getAddressComponentString(adjustedSignatureNum) << " == 0x" << lava::numToHexStringWithPadding(checksum, 4) << ":";
-				printStringWithComment(outputStreamIn, outputString, commentString.str(), 1);
+				lava::gecko::printStringWithComment(outputStreamIn, outputString, commentString.str(), 1);
 				break;
 			}
 			default:
@@ -1706,32 +1688,43 @@ namespace lava::gecko
 			// Handle rest of PPC output:
 			if (canDoGCTRMOutput)
 			{
-				outputStreamIn << "{\n";
-				bool mnemDisallowed = 0;
+				// Build PPC Hex Vector to pass to block parser.
+				std::vector<unsigned long> hexVec{};
 				unsigned long convertedHex = ULONG_MAX;
 				unsigned long instructionsToConvert = lengthNum * 2;
 				for (unsigned long i = 0; i < instructionsToConvert; i++)
 				{
 					lava::readNCharsFromStream(hexWord, codeStreamIn, 8, 0);
-					convertedHex = lava::stringToNum<unsigned long>(hexWord, 0, ULONG_MAX, 1);
-					conversion = convertPPCInstructionHex(hexWord, 1);
-					// Note: GCTRM doesn't properly support m[tf]spr's numeric SPR arguments, so for now, I'm including a check
-					// to ensure that these are output un-converted; hopefully this can be undone eventually. This is also set up
-					// to easily allow more mnemonics to be disallowed, though this won't be needed ideally.
-					mnemDisallowed = disallowedMnemonics.find(conversion.substr(0, conversion.find(' '))) != disallowedMnemonics.end();
-					// So, if we converted the instruction successfully, and the resulting mnemonic isn't disallowed...
-					if (!conversion.empty() && !mnemDisallowed)
+					hexVec.push_back(lava::stringToNum<unsigned long>(hexWord, 0, ULONG_MAX, 1));
+				}
+
+				std::vector<std::string> convertedHexVec = lava::ppc::convertInstructionHexBlockToStrings(hexVec, disallowedMnemonics, 2, 1);
+				outputStreamIn << "{\n";
+				// Do indented output, accounting for newline characters!
+				for (unsigned long i = 0; i < (convertedHexVec.size() - 1); i++)
+				{
+					// Stringview of the converted line, which we'll be using to simplify moving past newline chars
+					std::string_view conversionView = convertedHexVec[i];
+					// Keeps track of the position of the next newline char on each iteration.
+					std::size_t newlineLoc = SIZE_MAX;
+					// We're gonna do the first print regardless, so we do-while
+					do
 					{
-						// ... output the conversion.
-						outputStreamIn << "\t" << conversion << "\n";
-					}
-					// Otherwise, so long as the instruction isn't 0x00000000, or (if it is), isn't the final instruction in the code...
-					else if ((convertedHex != 0x00000000) || ((i + 1) < instructionsToConvert))
-					{
-						// ... output it as a word embed.
-						outputStreamIn << "\t";
-						printStringWithComment(outputStreamIn, "word 0x" + hexWord, conversion, 1);
-					}
+						// Get the location of the next newline char within the current view of the conversion string...
+						newlineLoc = conversionView.find('\n');
+						// ... and get the region before the newline.
+						std::string_view segmentView = conversionView.substr(0, newlineLoc);
+						// Only do indentation if we aren't looking at a branch destination tag segment!
+						// Literally: if there's a colon in the line, and it doesn't come after a '#' (ie. isn't in a comment), skip indentation
+						if (!(segmentView.find(':') < segmentView.find('#')))
+						{
+							outputStreamIn << "\t";
+						}
+						// Output the segment that comes before the newline (or the whole thing, if there isn't one).
+						outputStreamIn << segmentView << "\n";
+						// And push our stringview forward, past the last found newline, to move further iterations forwards.
+						conversionView.remove_prefix(newlineLoc + 1);
+					} while (newlineLoc != std::string::npos); // And repeat, for as long the previous iteration found a newline!
 				}
 				outputStreamIn << "}\n";
 			}
@@ -1768,7 +1761,7 @@ namespace lava::gecko
 						commentString << "---";
 					}
 
-					printStringWithComment(outputStreamIn, outputString, commentString.str(), 1);
+					lava::gecko::printStringWithComment(outputStreamIn, outputString, commentString.str(), 1);
 				}
 			}
 			
@@ -1803,7 +1796,7 @@ namespace lava::gecko
 			outputString = "* " + signatureWord + " " + immWord;
 			commentString << codeTypeIn->name << " @ " << getAddressComponentString(signatureNum) << ": b 0x" << lava::numToHexStringWithPadding(immNum, 8);
 			
-			printStringWithComment(outputStreamIn, outputString, commentString.str(), 1);
+			lava::gecko::printStringWithComment(outputStreamIn, outputString, commentString.str(), 1);
 
 			result = codeStreamIn.tellg() - initialPos;
 		}
@@ -1846,7 +1839,7 @@ namespace lava::gecko
 			}
 			commentStr << " < " << lava::numToHexStringWithPadding(immNum << 0x10, 0x08);
 
-			printStringWithComment(outputStreamIn, outputStr, commentStr.str(), 1);
+			lava::gecko::printStringWithComment(outputStreamIn, outputStr, commentStr.str(), 1);
 
 			result = codeStreamIn.tellg() - initialPos;
 		}
@@ -1893,7 +1886,7 @@ namespace lava::gecko
 				commentStr << "po unchanged";
 			}
 
-			printStringWithComment(outputStreamIn, outputStr, commentStr.str(), 1);
+			lava::gecko::printStringWithComment(outputStreamIn, outputStr, commentStr.str(), 1);
 
 			result = codeStreamIn.tellg() - initialPos;
 		}
@@ -1946,7 +1939,7 @@ namespace lava::gecko
 				commentStr << "po unchanged";
 			}
 
-			printStringWithComment(outputStreamIn, outputStr, commentStr.str(), 1);
+			lava::gecko::printStringWithComment(outputStreamIn, outputStr, commentStr.str(), 1);
 
 			result = codeStreamIn.tellg() - initialPos;
 		}
@@ -1985,7 +1978,7 @@ namespace lava::gecko
 			commentStr << codeTypeIn->name << ": Search for Following " << +lineCount << " line(s) between " <<
 				"$" << lava::numToHexStringWithPadding(searchRegionStart, 8) << " and "
 				"$" << lava::numToHexStringWithPadding(searchRegionEnd, 8);
-			printStringWithComment(outputStreamIn, outputStr, commentStr.str(), 1);
+			lava::gecko::printStringWithComment(outputStreamIn, outputStr, commentStr.str(), 1);
 
 			// Dump remaining lines:
 			dumpUnannotatedHexToStream(codeStreamIn, outputStreamIn, lineCount, "\tSearch Criteria:");
@@ -2016,7 +2009,7 @@ namespace lava::gecko
 			std::stringstream commentStr("");
 			commentStr << codeTypeIn->name;
 			
-			printStringWithComment(outputStreamIn, outputStr, commentStr.str(), 1);
+			lava::gecko::printStringWithComment(outputStreamIn, outputStr, commentStr.str(), 1);
 
 			result = codeStreamIn.tellg() - initialPos;
 		}
