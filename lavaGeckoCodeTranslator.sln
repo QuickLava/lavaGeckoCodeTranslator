@@ -5,6 +5,8 @@ VisualStudioVersion = 16.0.32510.428
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "lavaGeckoCodeTranslator", "lavaGeckoCodeTranslator\lavaGeckoCodeTranslator.vcxproj", "{D01987EC-6C8E-4650-B065-9FC12C83F5ED}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "lavaSymbolChecker", "lavaSymbolChecker\lavaSymbolChecker.vcxproj", "{B2828F9E-E2E0-4975-A50C-D1DF8718C71A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -21,6 +23,14 @@ Global
 		{D01987EC-6C8E-4650-B065-9FC12C83F5ED}.Release|x64.Build.0 = Release|x64
 		{D01987EC-6C8E-4650-B065-9FC12C83F5ED}.Release|x86.ActiveCfg = Release|Win32
 		{D01987EC-6C8E-4650-B065-9FC12C83F5ED}.Release|x86.Build.0 = Release|Win32
+		{B2828F9E-E2E0-4975-A50C-D1DF8718C71A}.Debug|x64.ActiveCfg = Debug|x64
+		{B2828F9E-E2E0-4975-A50C-D1DF8718C71A}.Debug|x64.Build.0 = Debug|x64
+		{B2828F9E-E2E0-4975-A50C-D1DF8718C71A}.Debug|x86.ActiveCfg = Debug|Win32
+		{B2828F9E-E2E0-4975-A50C-D1DF8718C71A}.Debug|x86.Build.0 = Debug|Win32
+		{B2828F9E-E2E0-4975-A50C-D1DF8718C71A}.Release|x64.ActiveCfg = Release|x64
+		{B2828F9E-E2E0-4975-A50C-D1DF8718C71A}.Release|x64.Build.0 = Release|x64
+		{B2828F9E-E2E0-4975-A50C-D1DF8718C71A}.Release|x86.ActiveCfg = Release|Win32
+		{B2828F9E-E2E0-4975-A50C-D1DF8718C71A}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
