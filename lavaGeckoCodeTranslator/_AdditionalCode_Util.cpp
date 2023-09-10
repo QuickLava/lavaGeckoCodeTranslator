@@ -92,6 +92,7 @@ namespace lava
 	std::vector<std::string> splitString(const std::string& sourceStr, std::string delimiter, std::size_t maxSplits)
 	{
 		std::vector<std::string> result{};
+		result.reserve(maxSplits);
 
 		// String View of the source string, to simplify and speed up splitting.
 		std::string_view sourceView(&sourceStr[0], sourceStr.size());
