@@ -177,6 +177,7 @@ namespace lava::ppc
 	std::string getStringWithComment(const std::string& primaryString, const std::string& commentString, unsigned long relativeCommentLoc = 0x20, unsigned long commentIndentationLevel = 0x00);
 	unsigned long extractInstructionArg(unsigned long hexIn, unsigned char startBitIndex, unsigned char length);
 	unsigned long getInstructionOpCode(unsigned long hexIn);
+	std::vector<std::string> formatRawDataEmbedOutput(const std::vector<unsigned long>& hexVecIn, std::string linePrefixIn, std::string wordPrefixIn, unsigned char wordsPerLineIn, unsigned long relativeLabelLoc);
 
 	// Argument Layouts
 	struct asmInstruction;

@@ -192,36 +192,27 @@ namespace lava::gecko
 
 		if (linesToDump > 0)
 		{
-			bool startingNewLine = 1;
-
 			// Buffer for reading in bytes from stream.
 			std::string dumpStr("");
 			dumpStr.reserve(8);
-
-			// Output first line, with comment:
-			std::string outputString("");
-			lava::readNCharsFromStream(dumpStr, codeStreamIn, 0x8, 0);
-			outputString = "* " + dumpStr;
-			lava::readNCharsFromStream(dumpStr, codeStreamIn, 0x8, 0);
-			outputString += " " + dumpStr;
-			lava::gecko::printStringWithComment(output, outputString, commentStr, 1);
-
-			result += 0x10;
-			std::size_t bytesToDump = linesToDump * 0x10;
-			while (result < bytesToDump)
+			// Build the hexVec we'll be passing to the formatting function.
+			// We need 2 hex words per line we're dumping, so initialize those entries to 0x00.
+			std::vector<unsigned long> hexVec(linesToDump * 2, 0x00);
+			for (std::size_t i = 0; codeStreamIn.good() && i < hexVec.size(); i++)
 			{
-				if (startingNewLine)
-				{
-					output << "*";
-				}
-				lava::readNCharsFromStream(dumpStr, codeStreamIn, 0x8, 0);
-				output << " " << dumpStr;
-				if (!startingNewLine)
-				{
-					output << "\n";
-				}
-				startingNewLine = !startingNewLine;
 				result += 0x8;
+				// and for each, pull 8 chars from the code stream...
+				lava::readNCharsFromStream(dumpStr, codeStreamIn, 0x8, 0);
+				// ... and convert them to a proper hex number, writing them into the appropriate line of the hexVec.
+				hexVec[i] = lava::stringToNum<unsigned long>(dumpStr, 0, ULONG_MAX, 1);
+			}
+
+			// Pass that hexVec to the embed formatting func to get our formatted output back...
+			std::vector<std::string> outputVec = lava::ppc::formatRawDataEmbedOutput(hexVec, "*", " ", 2, 0x30);
+			// ... and finally write each formatted line to the output!
+			for (std::size_t i = 0; i < outputVec.size(); i++)
+			{
+				output << outputVec[i] << "\n";
 			}
 		}
 
@@ -1698,10 +1689,10 @@ namespace lava::gecko
 					hexVec.push_back(lava::stringToNum<unsigned long>(hexWord, 0, ULONG_MAX, 1));
 				}
 
-				std::vector<std::string> convertedHexVec = lava::ppc::convertInstructionHexBlockToStrings(hexVec, disallowedMnemonics, 2, 1);
+				std::vector<std::string> convertedHexVec = lava::ppc::convertInstructionHexBlockToStrings(hexVec, disallowedMnemonics, 1, 1);
 				outputStreamIn << "{\n";
 				// Do indented output, accounting for newline characters!
-				for (unsigned long i = 0; i < (convertedHexVec.size() - 1); i++)
+				for (unsigned long i = 0; i < convertedHexVec.size(); i++)
 				{
 					// Stringview of the converted line, which we'll be using to simplify moving past newline chars
 					std::string_view conversionView = convertedHexVec[i];
