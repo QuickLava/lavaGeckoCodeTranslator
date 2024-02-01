@@ -60,7 +60,7 @@ namespace lava::ppc
 	{
 		return extractInstructionArg(hexIn, 0, 6);
 	}
-	std::vector<std::string> formatRawDataEmbedOutput(const std::vector<unsigned long>& hexVecIn, std::string linePrefixIn, std::string wordPrefixIn, unsigned char wordsPerLineIn, unsigned long relativeLabelLoc)
+	std::vector<std::string> formatRawDataEmbedOutput(const std::vector<unsigned long>& hexVecIn, std::string linePrefixIn, std::string wordPrefixIn, unsigned char wordsPerLineIn, unsigned long relativeLabelLocIn, std::string labelStringIn)
 	{
 		// Ensure wordsPerLine is at least 1.
 		wordsPerLineIn = (wordsPerLineIn > 0) ? wordsPerLineIn : 1;
@@ -118,7 +118,7 @@ namespace lava::ppc
 			}
 		}
 		// And lastly, on the first line of the embed, write in a comment labeling the EMBED itself.
-		result.front() = lava::ppc::getStringWithComment(result.front(), "DATA_EMBED (0x" + lava::numToHexStringWithPadding(hexVecIn.size() * 4, 0) + " bytes)", relativeLabelLoc);
+		result.front() = lava::ppc::getStringWithComment(result.front(), labelStringIn, relativeLabelLocIn);
 
 		return result;
 	}
@@ -153,6 +153,7 @@ namespace lava::ppc
 
 		if (crField == 0)
 		{
+			// If decrementing CTR is disabled, parse for the full set of simplified mnemonics.
 			if (BOIn & 0b00100)
 			{
 				// This is the always branch condition, mostly used for blr and bctr
@@ -226,17 +227,29 @@ namespace lava::ppc
 
 					}
 				}
-
-				// If we've written to result / if a mnemonic was found.
-				if (result.tellp() != 0)
+			}
+			// If it isn't disabled though...
+			else
+			{
+				// ... then we can only offer a mnemonic for the always branch case.
+				if (BOIn & 0b10000)
 				{
-					result << suffixIn;
-					// Check y-bit of BO; if set...
-					if ((BOIn & 0b1) != 0)
-					{
-						// ... append positive branch prediction mark.
-						result << "+";
-					}
+					// Assign mnem based on == 0 bit (0b00010)
+					if (BOIn & 0b00010) { result << "bdz"; }
+					else { result << "bdnz"; }
+				}
+			}
+
+			// If we've written to result (if a mnemonic was found)...
+			if (result.tellp() != 0)
+			{
+				// ... attach the provided extra suffix to the end.
+				result << suffixIn;
+				// Additionally, check y-bit of BO; if set...
+				if ((BOIn & 0b1) != 0)
+				{
+					// ... append positive branch prediction mark.
+					result << "+";
 				}
 			}
 		}
@@ -446,24 +459,13 @@ namespace lava::ppc
 			// If embeds *aren't* disabled, use the catalogue of branch events to detect any data embeds.
 			for (auto i = relativeBranchEventsMap.begin(); !disableDataEmbedOutput && i != relativeBranchEventsMap.end(); i++)
 			{
-				// If there is no embed open, and this event is a unconditional forward branch...
-				if ((currentEmbedStart == SIZE_MAX) && (i->second.outgoingBranchIsUnconditional && !i->second.outgoingBranchGoesBackwards))
+				// If we've got an embed open, and we've reached a destination event...
+				if ((currentEmbedStart != SIZE_MAX) && (!i->second.incomingBranchStartIndices.empty()))
 				{
-					// ... and this instruction branches over at least 1 instruction/word of data (ie. our embed length > 0)...
-					if ((i->first + 1) < i->second.outgoingBranchDestIndex)
+					// ... and we've branched over at least 1 instruction/word of data (ie. our embed length > 0)...
+					if ((currentEmbedStart + 1) < i->first)
 					{
-						// ... note the instruction immediately following it as the prospective start of an embed...
-						currentEmbedStart = i->first + 1;
-						// ... and the targeted instruction as the prospective end.
-						currentEmbedExpectedEnd = i->second.outgoingBranchDestIndex;
-					}
-				}
-				// Alternatively, if we've got an embed open, and we've reached a destination event...
-				else if ((currentEmbedStart != SIZE_MAX) && (!i->second.incomingBranchStartIndices.empty()))
-				{
-					// ... and this location is the expected end of our embed, that's a valid embed!
-					if (i->first == currentEmbedExpectedEnd)
-					{
+						
 						// ... record it.
 						dataEmbedStartsToLengths[currentEmbedStart] = i->first - currentEmbedStart;
 						// Additionally, set its label condition appropriately!
@@ -475,6 +477,18 @@ namespace lava::ppc
 
 					// In any case, close the open embed.
 					currentEmbedStart = SIZE_MAX;
+				}
+				// If there is no embed open, and this event is a unconditional forward branch...
+				if ((currentEmbedStart == SIZE_MAX) && (i->second.outgoingBranchIsUnconditional && !i->second.outgoingBranchGoesBackwards))
+				{
+					// ... and this instruction branches over at least 1 instruction/word of data (ie. our embed length > 0)...
+					if ((i->first + 1) < i->second.outgoingBranchDestIndex)
+					{
+						// ... note the instruction immediately following it as the prospective start of an embed...
+						currentEmbedStart = i->first + 1;
+						// ... and the targeted instruction as the prospective end.
+						currentEmbedExpectedEnd = i->second.outgoingBranchDestIndex;
+					}
 				}
 			}
 		}
@@ -2942,7 +2956,8 @@ namespace lava::ppc
 				// Get the relevant slice of our vector...
 				std::vector<unsigned long> embedHexVec(hexVecIn.begin() + i->first, hexVecIn.begin() + i->first + i->second);
 				// ... use it to generate the formatted output for our embed...
-				std::vector<std::string> formattedEmbedVec = formatRawDataEmbedOutput(embedHexVec, "", "word 0x", 1, 0x2C);
+				std::vector<std::string> formattedEmbedVec = formatRawDataEmbedOutput(embedHexVec, "", "word 0x", 1, 0x2C,
+					"DATA_EMBED (0x" + lava::numToHexStringWithPadding(embedHexVec.size() * 4, 0) + " bytes)");
 				// ... and write each line of it to the results vector.
 				for (std::size_t u = 0; u < i->second; u++)
 				{
@@ -3121,19 +3136,20 @@ namespace lava::ppc
 
 		if (!mapSymbolStartsToStructs.empty())
 		{
-			// Get the first symbol that starts after the address we're looking for.
+			// Get the first symbol that starts either at or after the address we're looking for.
 			auto nextHighestItr = mapSymbolStartsToStructs.lower_bound(addressIn);
-			// If there's a symbol *before* that one...
-			if (nextHighestItr != mapSymbolStartsToStructs.begin())
+			// If we find a symbol, and that symbol starts *after* our address, and there's a symbol before this one...
+			if ((nextHighestItr != mapSymbolStartsToStructs.end()) && 
+				(nextHighestItr->first > addressIn) &&
+				(nextHighestItr != mapSymbolStartsToStructs.begin()))
 			{
-				// ... move back one symbol...
+				// ... then move backwards to the previous symbol.
 				nextHighestItr--;
-				// ... and see if our address lies within that symbol.
-				if (nextHighestItr->second.positionWithinSymbol(addressIn) != ULONG_MAX)
-				{
-					// If so, that's our result.
-					result = &nextHighestItr->second;
-				}
+			}
+			if ((nextHighestItr != mapSymbolStartsToStructs.end()) && (nextHighestItr->second.positionWithinSymbol(addressIn) != ULONG_MAX))
+			{
+				// If so, that's our result.
+				result = &nextHighestItr->second;
 			}
 		}
 

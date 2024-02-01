@@ -65,7 +65,7 @@ namespace lava::gecko
 	geckoCodeType* findRelevantGeckoCodeType(unsigned char primaryType, unsigned char secondaryType);
 	// If resetDynamicValues is set to 1, BA, PO, and Gecko Register values will be reset to their default states before parsing.
 	// If resetTrackingValues is set to 1, Loop, Goto, and Date Embed tracking values will also be reset before parsing.
-	std::size_t parseGeckoCode(std::ostream& output, std::istream& codeStreamIn, std::size_t expectedLength, bool resetDynamicValues, bool resetTrackingValues);
+	std::size_t parseGeckoCode(std::ostream& output, std::istream& codeStreamIn, std::size_t expectedLength, bool resetDynamicValues, bool resetTrackingValues, bool doPPCHexComments);
 }
 
 #endif
