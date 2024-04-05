@@ -26,7 +26,7 @@ namespace lava
 			result = 1;
 
 			translationBuffer.seekg(0);
-			lava::gecko::parseGeckoCode(outputStream, translationBuffer, bytesToTranslate, 0, 0);
+			lava::gecko::parseGeckoCode(outputStream, translationBuffer, bytesToTranslate, 0, 0, 1);
 			translationBuffer.str("");
 			translationBuffer.clear();
 		}

@@ -7,7 +7,7 @@ namespace lava::gecko
 	constexpr unsigned long signatureBaPoMask = 0x10000000;
 	constexpr unsigned long signatureAddressMask = 0x1FFFFFF;
 	const std::string withEndifString = " (With Endif)";
-	const std::set<std::string> disallowedMnemonics = {"mfspr", "mtspr"};
+	const std::set<std::string> disallowedMnemonics = {"mfspr", "mtspr", "psq_lux", "psq_stx"};
 
 	// Dynamic Values
 	// These are used to try to keep track of BA and PO so they can be used in GCTRM syntax instructions.
