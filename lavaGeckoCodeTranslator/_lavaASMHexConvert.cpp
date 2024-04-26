@@ -540,7 +540,7 @@ namespace lava::ppc
 			else
 			{
 				// ... we need to convert it to signed and get our string from there.
-				immediateStr = unsignedImmArgToSignedString((argumentsIn[3] << 2), 14, 1);
+				immediateStr = unsignedImmArgToSignedString((argumentsIn[3] << 2), 16, 1);
 				// Additionally, check if the offset value is negative...
 				if (lava::stringToNum<signed long>(immediateStr, 1, LONG_MAX, 1) < 0)
 				{
@@ -697,7 +697,7 @@ namespace lava::ppc
 			}
 			else
 			{
-				result << unsignedImmArgToSignedString((argumentsIn[1] << 2), 24, 1);
+				result << unsignedImmArgToSignedString((argumentsIn[1] << 2), 26, 1);
 			}
 		}
 
