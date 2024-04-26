@@ -95,5 +95,7 @@ int main(int argc, char** argv)
 		std::cerr << "Unable to parse map! Ensure a validly formatted \"" << localMapFilePath << "\" file exists in this folder and try again!\n";
 	}
 
+	std::cout << "\nPress any key to exit.\n";
+	_getch();
 	return 0;
 }

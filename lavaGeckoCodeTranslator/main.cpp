@@ -98,6 +98,9 @@ int main(int argc, char** argv)
 	{
 		std::cout << "Usage: Drag files to translate onto this executable, or pass their file paths as command line arguments.\n";
 		std::cout << "Translated results are placed in the same directory as their source files, using the same name (suffixed with \"" << suffixString << "\").\n";
+
+		std::cout << "\nPress any key to exit.\n";
+		_getch();
 	}
 	return 0;
 }
