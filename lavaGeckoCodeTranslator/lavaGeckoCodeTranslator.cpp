@@ -129,14 +129,12 @@ namespace lava
 	bool translateGCTFile(std::istream& inputStream, std::ostream& outputStream)
 	{
 		std::stringstream translationBuffer("");
-		translationBuffer << std::hex;
 
 		unsigned char _readBuf[4];
 		unsigned long currentHex = ULONG_MAX;
 		inputStream.seekg(0x8);
-		while (inputStream.good())
+		while (inputStream.read((char*)&_readBuf[0], sizeof(_readBuf)).good())
 		{
-			inputStream.read((char*)&_readBuf[0], sizeof(_readBuf));
 			currentHex = lava::bytesToFundamental<unsigned long>(&_readBuf[0]);
 			translationBuffer << lava::numToHexStringWithPadding<unsigned long>(currentHex, 0x8);
 		}
