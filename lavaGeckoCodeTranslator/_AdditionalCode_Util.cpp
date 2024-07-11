@@ -123,4 +123,34 @@ namespace lava
 
 		return result;
 	}
+	void setStringCase(std::string& targetStr, bool targetCase)
+	{
+		for (std::size_t i = 0; i < targetStr.size(); i++)
+		{
+			char& currChar = targetStr[i];
+			currChar = (targetCase == 1) ? std::toupper(currChar) : std::tolower(currChar);
+		}
+	}
+	void setStringToLower(std::string& targetStr)
+	{
+		setStringCase(targetStr, 0);
+	}
+	void setStringToUpper(std::string& targetStr)
+	{
+		setStringCase(targetStr, 1);
+	}
+	std::string copyStringToCase(const std::string& sourceStr, bool targetCase)
+	{
+		std::string result = sourceStr;
+		setStringCase(result, targetCase);
+		return result;
+	}
+	std::string copyStringToLower(const std::string& sourceStr)
+	{
+		return copyStringToCase(sourceStr, 0);
+	}
+	std::string copyStringToUpper(const std::string& sourceStr)
+	{
+		return copyStringToCase(sourceStr, 1);
+	}
 }

@@ -69,7 +69,6 @@ int main(int argc, char** argv)
 			tryParseLocalMapFile();
 		}
 
-		std::string outputPath("");
 		for (unsigned long i = 1; i < argc; i++)
 		{
 			// Skip the argument if it's already been parsed as a .map file.
@@ -80,8 +79,8 @@ int main(int argc, char** argv)
 
 			std::cout << "Translating \"" << argv[i] << "\"... ";
 
-			outputPath = lava::applyFilenameSuffix(argv[i], suffixString);
-			if (lava::translateFile(argv[i], outputPath, 0))
+			std::string outputPath("");
+			if (lava::translateFile(argv[i], suffixString, 0, &outputPath))
 			{
 				std::cout << "Success!\n";
 				std::cout << "\tTranslation written to \"" << outputPath << "\"!\n";

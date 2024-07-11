@@ -6,9 +6,9 @@
 
 namespace lava
 {
-	std::string applyFilenameSuffix(std::string filepath, std::string suffix);
-	bool translateFile(std::istream& inputStream, std::ostream& outputStream);
-	bool translateFile(std::string inputFilepath, std::string outputFilepath, bool useOutpathAsFilenameSuffix);
+	bool translateTextFile(std::istream& inputStream, std::ostream& outputStream);
+	bool translateGCTFile(std::istream& inputStream, std::ostream& outputStream);
+	bool translateFile(const std::string& inputFilepath, const std::string& outputSuffix, bool useSuffixAsAbsoluteOutPath, std::string* pathOut = nullptr);
 }
 
 #endif

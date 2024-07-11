@@ -107,6 +107,12 @@ namespace lava
 		return lengthIn + padLength;
 	}
 	std::vector<std::string> splitString(const std::string& sourceStr, std::string delimiter, std::size_t maxSplits = SIZE_MAX);
+	void setStringCase(std::string& targetStr, bool targetCase);
+	void setStringToLower(std::string& targetStr);
+	void setStringToUpper(std::string& targetStr);
+	std::string copyStringToCase(const std::string& sourceStr, bool targetCase);
+	std::string copyStringToLower(const std::string& sourceStr);
+	std::string copyStringToUpper(const std::string& sourceStr);
 }
 
 #endif

@@ -5,14 +5,13 @@ namespace lava
 {
 	const std::string allowedNonHexChars = " \t*";
 
-	std::string applyFilenameSuffix(std::string filepath, std::string suffix)
+	std::string applyFilenameSuffix(std::filesystem::path filepath, std::string suffix)
 	{
-		std::string result = "";
-
-		std::filesystem::path sourceFilePathObj(filepath);
-		result = sourceFilePathObj.parent_path().string() + "/" + sourceFilePathObj.stem().string() + suffix + sourceFilePathObj.extension().string();
-
-		return result;
+		return filepath.parent_path().string() + "/" + filepath.stem().string() + suffix + filepath.extension().string();
+	}
+	std::string applyFileExtension(std::filesystem::path filepath, std::string extension)
+	{
+		return filepath.replace_extension(extension).string();
 	}
 
 	bool dumpTranslationBuffer(std::stringstream& translationBuffer, std::ostream& outputStream)
@@ -33,7 +32,7 @@ namespace lava
 
 		return result;
 	}
-	bool translateFile(std::istream& inputStream, std::ostream& outputStream)
+	bool translateTextFile(std::istream& inputStream, std::ostream& outputStream)
 	{
 		std::size_t outputStrInitialPos = outputStream.tellp();
 
@@ -127,25 +126,76 @@ namespace lava
 
 		return outputStrInitialPos < outputStream.tellp();
 	}
-	bool translateFile(std::string inputFilepath, std::string outputFilepath, bool useOutpathAsFilenameSuffix)
+	bool translateGCTFile(std::istream& inputStream, std::ostream& outputStream)
+	{
+		std::stringstream translationBuffer("");
+		translationBuffer << std::hex;
+
+		unsigned char _readBuf[4];
+		unsigned long currentHex = ULONG_MAX;
+		inputStream.seekg(0x8);
+		while (inputStream.good())
+		{
+			inputStream.read((char*)&_readBuf[0], sizeof(_readBuf));
+			currentHex = lava::bytesToFundamental<unsigned long>(&_readBuf[0]);
+			translationBuffer << lava::numToHexStringWithPadding<unsigned long>(currentHex, 0x8);
+		}
+
+		std::size_t translationBufferLength = translationBuffer.tellp();
+		lava::gecko::parseGeckoCode(outputStream, translationBuffer, translationBufferLength - 0x10, 1, 1, 1);
+		return 1;
+	}
+	bool translateFile(const std::string& inputFilepath, const std::string& outputSuffix, bool useSuffixAsAbsoluteOutPath, std::string* pathOut)
 	{
 		bool result = 0;
 
-		std::ifstream inputStream;
-		inputStream.open(inputFilepath);
-		if (inputStream.is_open())
+		std::filesystem::path outputPath;
+		if (useSuffixAsAbsoluteOutPath)
 		{
-			if (useOutpathAsFilenameSuffix)
-			{
-				outputFilepath = applyFilenameSuffix(inputFilepath, outputFilepath);
-			}
+			outputPath = outputSuffix;
+		}
+		else
+		{
+			outputPath = applyFilenameSuffix(inputFilepath, outputSuffix);
+		}
 
+		if (std::filesystem::is_regular_file(inputFilepath))
+		{
+			std::ifstream inputStream;
 			std::ofstream outputStream;
-			outputStream.open(outputFilepath);
-			if (outputStream.is_open())
+
+			if (lava::copyStringToLower(std::filesystem::path(inputFilepath).extension().string()) == ".gct")
 			{
-				result = translateFile(inputStream, outputStream);
+				inputStream.open(inputFilepath, std::ios_base::in | std::ios_base::binary);
+				if (!useSuffixAsAbsoluteOutPath)
+				{
+					outputPath = applyFileExtension(outputPath, ".txt");
+				}
+				outputStream.open(outputPath);
+				if (outputStream.is_open() && inputStream.is_open())
+				{
+					outputStream << std::filesystem::path(inputFilepath).stem().string() << "\n\n";
+					result = translateGCTFile(inputStream, outputStream);
+				}
 			}
+			else
+			{
+				inputStream.open(inputFilepath);
+				outputStream.open(outputPath);
+				if (outputStream.is_open() && inputStream.is_open())
+				{
+					result = translateTextFile(inputStream, outputStream);
+				}
+			}
+		}
+
+		if (result)
+		{
+			*pathOut = outputPath.string();
+		}
+		else
+		{
+			*pathOut = "";
 		}
 
 		return result;
