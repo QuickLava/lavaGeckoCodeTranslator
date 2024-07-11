@@ -3,10 +3,11 @@ Taunt to do your character's entry:  (Phantom Wings)
 HOOK @ $8077F780                # Address = $(po + 0x00000000) [in "changeStatusRequest/[soStatusModuleImpl]/so_status_module" @ $8077F5A8]
 {
 	cmpwi r3, 0x0                   # 0x2C030000
-	beq 0x10                        # 0x41820010
+	beq loc_0x005                   # 0x41820010
 	cmpwi r28, 0x10c                # 0x2C1C010C
-	bne 0x8                         # 0x40820008
+	bne loc_0x005                   # 0x40820008
 	li r28, 0x10e                   # 0x3B80010E
+loc_0x005:
 	nop                             # 0x60000000
 	stw r28, 0x38(r30)              # 0x939E0038
 }

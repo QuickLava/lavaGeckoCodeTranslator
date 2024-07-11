@@ -5,7 +5,7 @@ HOOK @ $808960E8                # Address = $(ba + 0x008960E8) [in "getFixScale/
 	stfsx f1,  r3,  r0              # 0x7C23052E
 	psq_l f31, 0x18(r1), 0, 0       # 0xE3E10018
 	cmpwi r30, 0x0                  # 0x2C1E0000
-	beq 0x24                        # 0x41820024
+	beq loc_0x00C                   # 0x41820024
 	lwz r6, 0xd8(r30)               # 0x80DE00D8
 	lwz r6, 0x64(r6)                # 0x80C60064
 	lwz r6, 0x20(r6)                # 0x80C60020
@@ -14,12 +14,13 @@ HOOK @ $808960E8                # Address = $(ba + 0x008960E8) [in "getFixScale/
 	mulli r10, r10, 0x8             # 0x1D4A0008
 	addi r10, r10, 0x20             # 0x394A0020
 	stfsx f1,  r2,  r10             # 0x7C22552E
+loc_0x00C:
 	nop                             # 0x60000000
 }
 HOOK @ $8081C7B0                # Address = $(ba + 0x0081C7B0) [in "getScale/[ftOwner]/ft_owner.o" @ $8081C7AC]
 {
 	cmpwi r29, 0x0                  # 0x2C1D0000
-	beq 0x58                        # 0x41820058
+	beq loc_0x017                   # 0x41820058
 	lwz r16, 0xd8(r29)              # 0x821D00D8
 	lwz r16, 0x64(r16)              # 0x82100064
 	lwz r16, 0x20(r16)              # 0x82100020
@@ -31,17 +32,20 @@ HOOK @ $8081C7B0                # Address = $(ba + 0x0081C7B0) [in "getScale/[ft
 	add r15, r31, r2                # 0x7DFF1214
 	lwz r27, 0x4(r15)               # 0x836F0004
 	cmpw r14, r27                   # 0x7C0ED800
-	beq 0x14                        # 0x41820014
+	beq loc_0x012                   # 0x41820014
 	stw r14, 0x4(r15)               # 0x91CF0004
 	lfs f1, 0x4a0(r3)               # 0xC02304A0
 	stfs f1, 0x0(r15)               # 0xD02F0000
-	b 0x1c                          # 0x4800001C
+	b loc_0x018                     # 0x4800001C
+loc_0x012:
 	lwz r16, 0x0(r15)               # 0x820F0000
 	cmpwi r16, 0x0                  # 0x2C100000
-	beq 0xc                         # 0x4182000C
+	beq loc_0x017                   # 0x4182000C
 	lfs f1, 0x0(r15)                # 0xC02F0000
-	b 0x8                           # 0x48000008
+	b loc_0x018                     # 0x48000008
+loc_0x017:
 	lfs f1, 0x4a0(r3)               # 0xC02304A0
+loc_0x018:
 	nop                             # 0x60000000
 }
 * 04842C74 38800000             # 32-Bit Write @ $(ba + 0x00842C74):  0x38800000

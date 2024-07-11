@@ -80,9 +80,6 @@ Usage Storage Engine [Dantarion]
 * 73797374 656D2F63
 * 6F6D6D6F 6E322E70
 * 61630000 00000000
-# Translation Note: This is an example of a missed Data Embed! Past the "b 0x28" instruction is actually
-# the path to common2.pac. I have a plan for detecting these in the future, though it'll require a more
-# robust PPC parsing process, as opposed to the per-instruction approach the program currently takes.
 
 ##########################################################################################################
 Effect.pac Roster Expansion System (RSBE.Ver) V2 (Costume-Specific Etc File Support) [JOJI, DukeItOut]

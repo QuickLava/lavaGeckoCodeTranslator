@@ -2,8 +2,9 @@ Control Loser on victory screen [original by masterlinkx, ported by Link]
 HOOK @ $8077A908                # Address = $(ba + 0x0077A908) [in "reqLoad/[soArchiveItem]/so_archive_db.o" @ $8077A8CC]
 {
 	cmpwi r30, 0x110                # 0x2C1E0110
-	bne 0x8                         # 0x40820008
+	bne loc_0x003                   # 0x40820008
 	li r30, 0x10e                   # 0x3BC0010E
+loc_0x003:
 	nop                             # 0x60000000
 	stw r30, 0x38(r29)              # 0x93DD0038
 }
@@ -14,8 +15,9 @@ Control Winner on victory screen [original by masterlinkx, ported by Link]
 HOOK @ $8077A908                # Address = $(ba + 0x0077A908) [in "reqLoad/[soArchiveItem]/so_archive_db.o" @ $8077A8CC]
 {
 	cmpwi r30, 0x10f                # 0x2C1E010F
-	bne 0x8                         # 0x40820008
+	bne loc_0x003                   # 0x40820008
 	li r30, 0x10e                   # 0x3BC0010E
+loc_0x003:
 	nop                             # 0x60000000
 	stw r30, 0x38(r29)              # 0x93DD0038
 }

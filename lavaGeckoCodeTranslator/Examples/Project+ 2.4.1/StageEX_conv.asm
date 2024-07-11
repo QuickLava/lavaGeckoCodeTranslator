@@ -58,16 +58,18 @@ HOOK @ $8094A588                # Address = $(ba + 0x0094A588) [in "entryEntity/
 {
 	lhz r3, 0x1a(r3)                # 0xA063001A
 	cmpwi r3, 0x40                  # 0x2C030040
-	blt 0x8                         # 0x41800008
+	blt loc_0x004                   # 0x41800008
 	li r3, 0x0                      # 0x38600000
+loc_0x004:
 	nop                             # 0x60000000
 }
 HOOK @ $8094A1D0                # Address = $(ba + 0x0094A1D0) [in "processBegin/[stLoaderStage]/st_loader_stage.o" @ $80949FD4]
 {
 	mr r29, r3                      # 0x7C7D1B78
 	cmpwi r3, -0x1                  # 0x2C03FFFF
-	bne 0x8                         # 0x40820008
+	bne loc_0x004                   # 0x40820008
 	lis r29, 0x3f                   # 0x3FA0003F
+loc_0x004:
 	nop                             # 0x60000000
 }
 * 04015564 48000010             # 32-Bit Write @ $(ba + 0x00015564):  0x48000010

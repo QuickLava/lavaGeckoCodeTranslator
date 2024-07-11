@@ -14,16 +14,19 @@ Special Mode flags clear [wiiztec]
 HOOK @ $8068D420                # Address = $(ba + 0x0068D420) [in "isReady/[muSelCharTask]/mu_selchar.o" @ $8068D338]
 {
 	cmpwi r6, 0x0                   # 0x2C060000
-	bgt 0xc                         # 0x4181000C
+	bgt loc_0x004                   # 0x4181000C
 	li r8, 0x1                      # 0x39000001
-	b 0x20                          # 0x48000020
+	b loc_0x00B                     # 0x48000020
+loc_0x004:
 	cmpwi r6, 0x2                   # 0x2C060002
-	bge 0x14                        # 0x40800014
+	bge loc_0x00A                   # 0x40800014
 	lis r8, 0x9017                  # 0x3D009017
 	ori r8, r8, 0xf360              # 0x6108F360
 	lbz r8, 0x2(r8)                 # 0x89080002
-	b 0x8                           # 0x48000008
+	b loc_0x00B                     # 0x48000008
+loc_0x00A:
 	li r8, 0x0                      # 0x39000000
+loc_0x00B:
 	cmpwi r8, 0x0                   # 0x2C080000
 	nop                             # 0x60000000
 }
@@ -38,7 +41,7 @@ Allow 2x Speed Setting in Training [Magus]
 HOOK @ $809629F4                # Address = $(ba + 0x009629F4) [in "processBegin/[stOperatorInfoTraining]/st_operator_info_tr" @ $809620CC]
 {
 	li r3, 0x5a                     # 0x3860005A
-	beq 0x8                         # 0x41820008
+	beq %END%                       # 0x41820008
 	li r3, 0x78                     # 0x38600078
 }
 
@@ -77,7 +80,8 @@ Usage Storage Engine [Dantarion]
 HOOK @ $8001BF2C                # Address = $(ba + 0x0001BF2C) [in "readFile/[gfFileIO]/gf_file_io.o" @ $8001BF0C]
 {
 	lwz r3, 0x0(r3)                 # 0x80630000
-	bl 0x4                          # 0x48000005
+	bl loc_0x002                    # 0x48000005
+loc_0x002:
 	mflr r4                         # 0x7C8802A6
 	addi r4, r4, 0x5f               # 0x3884005F
 	mr r12, r3                      # 0x7C6C1B78
@@ -87,7 +91,7 @@ HOOK @ $8001BF2C                # Address = $(ba + 0x0001BF2C) [in "readFile/[gf
 	bctrl                           # 0x4E800421
 	cmpwi r3, 0x0                   # 0x2C030000
 	mr r3, r12                      # 0x7D836378
-	bne+ 0x50                       # 0x40A20050
+	bne+ %END%                      # 0x40A20050
 	subi r4, r4, 0x22               # 0x3884FFDE
 	lis r5, 0x803f                  # 0x3CA0803F
 	ori r5, r5, 0xa280              # 0x60A5A280
@@ -97,20 +101,17 @@ HOOK @ $8001BF2C                # Address = $(ba + 0x0001BF2C) [in "readFile/[gf
 	lis r5, 0x8001                  # 0x3CA08001
 	ori r5, r5, 0xbf2c              # 0x60A5BF2C
 	stw r4, 0x0(r5)                 # 0x90850000
-	b 0x28                          # 0x48000028
-	andi. r4, r27, 0x3a2f           # 0x73643A2F
-	rlwimi r18, r3, 13, 29, 21      # (Mask: 0xe03fffff)# 0x50726F6A
-	oris r3, r11, 0x742b            # 0x6563742B
-	word 0x2F70662F
-	andi. r25, r27, 0x7374          # 0x73797374
-	oris r13, r11, 0x2f63           # 0x656D2F63
-	xoris r13, r27, 0x6d6f          # 0x6F6D6D6F
-	xoris r18, r17, 0x2e70          # 0x6E322E70
-	ori r3, r11, 0x0                # 0x61630000
+	b %END%                         # 0x48000028
+	word 0x73643A2F                 # sd:/      | DATA_EMBED (0x24 bytes)
+	word 0x50726F6A                 # Proj
+	word 0x6563742B                 # ect+
+	word 0x2F70662F                 # /pf/
+	word 0x73797374                 # syst
+	word 0x656D2F63                 # em/c
+	word 0x6F6D6D6F                 # ommo
+	word 0x6E322E70                 # n2.p
+	word 0x61630000                 # ac..
 }
-# Translation Note: This is an example of a missed Data Embed! Past the "b 0x28" instruction is actually
-# the path to common2.pac. I have a plan for detecting these in the future, though it'll require a more
-# robust PPC parsing process, as opposed to the per-instruction approach the program currently takes.
 
 ##########################################################################################################
 Effect.pac Roster Expansion System (RSBE.Ver) V2 (Costume-Specific Etc File Support) [JOJI, DukeItOut]
@@ -127,64 +128,76 @@ HOOK @ $8005EFCC                # Address = $(ba + 0x0005EFCC) [in "searchResour
 {
 	addi r31, r31, 0x4              # 0x3BFF0004
 	cmplwi r27, 0x137               # 0x281B0137
-	blt 0xe8                        # 0x418000E8
+	blt loc_0x03C                   # 0x418000E8
 	lis r31, 0x8041                 # 0x3FE08041
 	addi r31, r31, 0x6f7c           # 0x3BFF6F7C
 	cmplwi r27, 0x2b7               # 0x281B02B7
-	beq 0x48                        # 0x41820048
+	beq loc_0x018                   # 0x41820048
 	cmplwi r27, 0x277               # 0x281B0277
-	beq 0x34                        # 0x41820034
+	beq loc_0x015                   # 0x41820034
 	cmplwi r27, 0x237               # 0x281B0237
-	beq 0x20                        # 0x41820020
+	beq loc_0x012                   # 0x41820020
 	cmplwi r27, 0x137               # 0x281B0137
-	bne 0x58                        # 0x40820058
+	bne loc_0x022                   # 0x40820058
 	subi r4, r31, 0x1c              # 0x389FFFE4
 	lwz r3, 0x0(r4)                 # 0x80640000
 	stw r3, -0xc(r31)               # 0x907FFFF4
 	lhz r3, 0x4(r4)                 # 0xA0640004
-	b 0x34                          # 0x48000034
+	b loc_0x01E                     # 0x48000034
+loc_0x012:
 	lis r4, 0x8059                  # 0x3C808059
 	ori r4, r4, 0xd734              # 0x6084D734
-	b 0x18                          # 0x48000018
+	b loc_0x01A                     # 0x48000018
+loc_0x015:
 	lis r4, 0x8059                  # 0x3C808059
 	ori r4, r4, 0xd6f4              # 0x6084D6F4
-	b 0xc                           # 0x4800000C
+	b loc_0x01A                     # 0x4800000C
+loc_0x018:
 	lis r4, 0x8059                  # 0x3C808059
 	ori r4, r4, 0xd638              # 0x6084D638
+loc_0x01A:
 	lwz r3, 0x0(r4)                 # 0x80640000
 	stw r3, -0xc(r31)               # 0x907FFFF4
 	lhz r3, 0x4(r4)                 # 0xA0640004
 	ori r3, r3, 0x58                # 0x60630058
+loc_0x01E:
 	sth r3, -0x8(r31)               # 0xB07FFFF8
 	li r0, 0x0                      # 0x38000000
 	stw r0, -0x4(r31)               # 0x901FFFFC
-	b 0x10                          # 0x48000010
+	b loc_0x025                     # 0x48000010
+loc_0x022:
 	lwz r4, -0x4(r31)               # 0x809FFFFC
 	addi r4, r4, 0x1                # 0x38840001
 	stw r4, -0x4(r31)               # 0x909FFFFC
+loc_0x025:
 	lbz r4, -0x1(r31)               # 0x889FFFFF
 	cmpwi r27, 0x237                # 0x2C1B0237
-	blt 0x1c                        # 0x4180001C
+	blt loc_0x02E                   # 0x4180001C
 	li r3, 0xa                      # 0x3860000A
+loc_0x029:
 	cmplw r4, r3                    # 0x7C041840
-	blt 0x10                        # 0x41800010
+	blt loc_0x02E                   # 0x41800010
 	addi r3, r3, 0x10               # 0x38630010
 	addi r4, r4, 0x6                # 0x38840006
-	b -0x10                         # 0x4BFFFFF0
+	b loc_0x029                     # 0x4BFFFFF0
+loc_0x02E:
 	mr r0, r4                       # 0x7C802378
 	andi. r4, r0, 0xf               # 0x7004000F
 	cmplwi r4, 0xa                  # 0x2804000A
 	addi r4, r4, 0x30               # 0x38840030
-	blt 0x8                         # 0x41800008
+	blt loc_0x034                   # 0x41800008
 	addi r4, r4, 0x7                # 0x38840007
+loc_0x034:
 	stb r4, -0x5(r31)               # 0x989FFFFB
 	andi. r4, r0, 0xf0              # 0x700400F0
-	rlwinm r4, r4, 28, 4, 31        # (Mask: 0xfffffff0)# 0x5484E13E
+	rlwinm r4, r4, 28, 4, 31        # (Mask: 0xfffffff0)| 0x5484E13E
 	cmplwi r4, 0xa                  # 0x2804000A
 	addi r4, r4, 0x30               # 0x38840030
-	blt 0x8                         # 0x41800008
+	blt loc_0x03B                   # 0x41800008
 	addi r4, r4, 0x7                # 0x38840007
+loc_0x03B:
 	stb r4, -0x6(r31)               # 0x989FFFFA
+loc_0x03C:
 	nop                             # 0x60000000
 }
 * 0405EFD0 2C1B02F7             # 32-Bit Write @ $(ba + 0x0005EFD0):  0x2C1B02F7
@@ -195,17 +208,18 @@ HOOK @ $80061218                # Address = $(ba + 0x00061218) [in "traceStart/[
 {
 	lwzx r4, r4, r9                 # 0x7C84482E
 	cmplwi r21, 0x87                # 0x28150087
-	blt 0x2c                        # 0x4180002C
+	blt %END%                       # 0x4180002C
 	li r4, 0x28                     # 0x38800028
 	cmplwi r21, 0x8d                # 0x2815008D
-	blt 0x20                        # 0x41800020
+	blt %END%                       # 0x41800020
 	li r4, 0x137                    # 0x38800137
 	subi r6, r21, 0x8d              # 0x38D5FF73
+loc_0x008:
 	cmplwi r6, 0xa                  # 0x2806000A
-	blt 0x10                        # 0x41800010
+	blt %END%                       # 0x41800010
 	subi r6, r6, 0xa                # 0x38C6FFF6
 	addi r4, r4, 0x1                # 0x38840001
-	b -0x10                         # 0x4BFFFFF0
+	b loc_0x008                     # 0x4BFFFFF0
 }
 * 06416F80 00000011             # String Write (17 characters) @ $(ba + 0x00416F80):
 * 54657852 6F795377             # 	   "TexRoySw ...
@@ -220,7 +234,7 @@ HOOK @ $80061278                # Address = $(ba + 0x00061278) [in "traceStart/[
 {
 	lwzx r4, r4, r9                 # 0x7C84482E
 	cmplwi r21, 0x87                # 0x28150087
-	blt 0x9c                        # 0x4180009C
+	blt %END%                       # 0x4180009C
 	lis r4, 0x8041                  # 0x3C808041
 	addi r4, r4, 0x6f80             # 0x38846F80
 	stw r3, 0x14(r4)                # 0x90640014
@@ -229,29 +243,33 @@ HOOK @ $80061278                # Address = $(ba + 0x00061278) [in "traceStart/[
 	stb r3, 0x11(r4)                # 0x98640011
 	lwz r3, 0x14(r4)                # 0x80640014
 	cmplwi r21, 0x8d                # 0x2815008D
-	blt 0x78                        # 0x41800078
+	blt %END%                       # 0x41800078
 	subi r5, r21, 0x8d              # 0x38B5FF73
 	stw r6, 0x18(r4)                # 0x90C40018
 	stw r7, 0x34(r4)                # 0x90E40034
 	addi r4, r4, 0x20               # 0x38840020
 	li r6, 0x0                      # 0x38C00000
 	li r3, 0x0                      # 0x38600000
+loc_0x012:
 	cmplwi r5, 0xa                  # 0x2805000A
-	blt 0x10                        # 0x41800010
+	blt loc_0x017                   # 0x41800010
 	subi r5, r5, 0xa                # 0x38A5FFF6
 	addi r6, r6, 0x1                # 0x38C60001
-	b -0x10                         # 0x4BFFFFF0
+	b loc_0x012                     # 0x4BFFFFF0
+loc_0x017:
 	andi. r7, r6, 0xf               # 0x70C7000F
 	cmplwi r7, 0xa                  # 0x2807000A
-	blt 0x8                         # 0x41800008
+	blt loc_0x01B                   # 0x41800008
 	addi r7, r7, 0x7                # 0x38E70007
+loc_0x01B:
 	addi r7, r7, 0x30               # 0x38E70030
 	stb r7, 0xa(r4)                 # 0x98E4000A
 	andi. r7, r6, 0xf0              # 0x70C700F0
-	rlwinm r7, r7, 28, 4, 31        # (Mask: 0xfffffff0)# 0x54E7E13E
+	rlwinm r7, r7, 28, 4, 31        # (Mask: 0xfffffff0)| 0x54E7E13E
 	cmplwi r7, 0xa                  # 0x2807000A
-	blt 0x8                         # 0x41800008
+	blt loc_0x022                   # 0x41800008
 	addi r7, r7, 0x7                # 0x38E70007
+loc_0x022:
 	addi r7, r7, 0x30               # 0x38E70030
 	stb r7, 0x9(r4)                 # 0x98E40009
 	addi r3, r5, 0x30               # 0x38650030
@@ -271,7 +289,7 @@ HOOK @ $807854B0                # Address = $(ba + 0x007854B0) [in "checkEstabli
 	stfd f31, 0x18(r2)              # 0xDBE20018
 	li r3, 0x1                      # 0x38600001
 	cmpwi r4, 0x53                  # 0x2C040053
-	bge 0x1bc                       # 0x408001BC
+	bge loc_0x073                   # 0x408001BC
 	lwz r10, 0x68(r28)              # 0x815C0068
 	lwz r9, 0x74(r10)               # 0x812A0074
 	lwz r8, 0x78(r10)               # 0x810A0078
@@ -280,24 +298,26 @@ HOOK @ $807854B0                # Address = $(ba + 0x007854B0) [in "checkEstabli
 	lwz r7, 0xc(r7)                 # 0x80E7000C
 	lwz r7, 0x134(r7)               # 0x80E70134
 	cmpwi r4, 0x4d                  # 0x2C04004D
-	beq 0x30                        # 0x41820030
+	beq loc_0x019                   # 0x41820030
 	cmpwi r4, 0x4e                  # 0x2C04004E
-	beq 0x70                        # 0x41820070
+	beq loc_0x02B                   # 0x41820070
 	cmpwi r4, 0x4f                  # 0x2C04004F
-	beq 0x80                        # 0x41820080
+	beq loc_0x031                   # 0x41820080
 	cmpwi r4, 0x50                  # 0x2C040050
-	beq 0x8c                        # 0x4182008C
+	beq loc_0x036                   # 0x4182008C
 	cmpwi r4, 0x51                  # 0x2C040051
-	beq 0x94                        # 0x41820094
+	beq loc_0x03A                   # 0x41820094
 	cmpwi r4, 0x52                  # 0x2C040052
-	beq 0x98                        # 0x41820098
-	b 0x168                         # 0x48000168
+	beq loc_0x03D                   # 0x41820098
+	b loc_0x072                     # 0x48000168
+loc_0x019:
 	lbz r7, 0xae(r10)               # 0x88EA00AE
 	lbz r6, 0xb0(r10)               # 0x88CA00B0
 	cmpwi r7, 0x2                   # 0x2C070002
-	blt 0xc                         # 0x4180000C
+	blt loc_0x01F                   # 0x4180000C
 	cmpwi r6, 0x2                   # 0x2C060002
-	bge+ 0x150                      # 0x40A00150
+	bge+ loc_0x072                  # 0x40A00150
+loc_0x01F:
 	lfs f30, 0x38(r10)              # 0xC3CA0038
 	lfs f31, 0x3c(r10)              # 0xC3EA003C
 	fmuls f30, f30, f30             # 0xEFDE07B2
@@ -308,26 +328,31 @@ HOOK @ $807854B0                # Address = $(ba + 0x007854B0) [in "checkEstabli
 	lfs f31, 0x0(r7)                # 0xC3E70000
 	fmuls f31, f31, f31             # 0xEFFF07F2
 	fcmpo cr0, f30, f31             # 0xFC1EF840
-	bge 0x128                       # 0x40800128
-	b 0x120                         # 0x48000120
+	bge loc_0x073                   # 0x40800128
+	b loc_0x072                     # 0x48000120
+loc_0x02B:
 	andc r6, r9, r8                 # 0x7D264078
-	rlwinm. r6, r6, 0, 28, 28       # (Mask: 0x00000008)# 0x54C60739
-	bne 0x118                       # 0x40820118
+	rlwinm. r6, r6, 0, 28, 28       # (Mask: 0x00000008)| 0x54C60739
+	bne loc_0x073                   # 0x40820118
 	cmpwi r7, 0x1                   # 0x2C070001
-	beq 0x110                       # 0x41820110
-	b 0x108                         # 0x48000108
-	rlwinm. r6, r9, 0, 28, 28       # (Mask: 0x00000008)# 0x55260739
-	bne 0x104                       # 0x40820104
+	beq loc_0x073                   # 0x41820110
+	b loc_0x072                     # 0x48000108
+loc_0x031:
+	rlwinm. r6, r9, 0, 28, 28       # (Mask: 0x00000008)| 0x55260739
+	bne loc_0x073                   # 0x40820104
 	cmpwi r7, 0x1                   # 0x2C070001
-	bge 0xfc                        # 0x408000FC
-	b 0xf4                          # 0x480000F4
+	bge loc_0x073                   # 0x408000FC
+	b loc_0x072                     # 0x480000F4
+loc_0x036:
 	andc r7, r9, r8                 # 0x7D274078
-	rlwinm. r6, r7, 0, 19, 21       # (Mask: 0x00001c00)# 0x54E604EB
-	bne 0xec                        # 0x408200EC
-	b 0xe4                          # 0x480000E4
-	rlwinm. r6, r9, 0, 19, 21       # (Mask: 0x00001c00)# 0x552604EB
-	bne 0xe0                        # 0x408200E0
-	b 0xd8                          # 0x480000D8
+	rlwinm. r6, r7, 0, 19, 21       # (Mask: 0x00001c00)| 0x54E604EB
+	bne loc_0x073                   # 0x408200EC
+	b loc_0x072                     # 0x480000E4
+loc_0x03A:
+	rlwinm. r6, r9, 0, 19, 21       # (Mask: 0x00001c00)| 0x552604EB
+	bne loc_0x073                   # 0x408200E0
+	b loc_0x072                     # 0x480000D8
+loc_0x03D:
 	lwz r3, 0xd8(r6)                # 0x806600D8
 	lwz r3, 0x1c(r3)                # 0x8063001C
 	lwz r12, 0x0(r3)                # 0x81830000
@@ -336,7 +361,7 @@ HOOK @ $807854B0                # Address = $(ba + 0x007854B0) [in "checkEstabli
 	bctrl                           # 0x4E800421
 	mr r28, r3                      # 0x7C7C1B78
 	cmpwi r28, 0x0                  # 0x2C1C0000
-	beq 0xb4                        # 0x418200B4
+	beq loc_0x072                   # 0x418200B4
 	mr r4, r27                      # 0x7F64DB78
 	addi r3, r1, 0x450              # 0x38610450
 	lis r12, 0x8078                 # 0x3D808078
@@ -349,7 +374,7 @@ HOOK @ $807854B0                # Address = $(ba + 0x007854B0) [in "checkEstabli
 	mtctr r12                       # 0x7D8903A6
 	bctrl                           # 0x4E800421
 	cmpwi r3, 0x1                   # 0x2C030001
-	bne 0x80                        # 0x40820080
+	bne loc_0x072                   # 0x40820080
 	lwz r12, 0x450(r1)              # 0x81810450
 	addi r3, r1, 0x450              # 0x38610450
 	li r4, 0x0                      # 0x38800000
@@ -364,24 +389,28 @@ HOOK @ $807854B0                # Address = $(ba + 0x007854B0) [in "checkEstabli
 	stw r0, 0x324(r1)               # 0x90010324
 	lbz r0, 0x324(r1)               # 0x88010324
 	cmplwi r0, 0x1                  # 0x28000001
-	bne 0xc                         # 0x4082000C
+	bne loc_0x064                   # 0x4082000C
 	li r0, 0x0                      # 0x38000000
-	b 0x8                           # 0x48000008
+	b loc_0x065                     # 0x48000008
+loc_0x064:
 	lhz r0, 0x6(r3)                 # 0xA0030006
+loc_0x065:
 	and r3, r28, r0                 # 0x7F830038
 	neg r0, r3                      # 0x7C0300D0
 	or r0, r0, r3                   # 0x7C001B78
-	rlwinm r3, r0, 1, 31, 31        # (Mask: 0x80000000)# 0x54030FFE
+	rlwinm r3, r0, 1, 31, 31        # (Mask: 0x80000000)| 0x54030FFE
 	cmpwi r3, 0x1                   # 0x2C030001
-	bne 0x20                        # 0x40820020
+	bne loc_0x072                   # 0x40820020
 	lhz r0, 0xc(r5)                 # 0xA005000C
 	lwz r6, 0x524(r1)               # 0x80C10524
 	lwz r6, 0xd8(r6)                # 0x80C600D8
 	lwz r6, 0x70(r6)                # 0x80C60070
 	lbz r6, 0xa5(r6)                # 0x88C600A5
 	cmpw r0, r6                     # 0x7C003000
-	beq 0x8                         # 0x41820008
+	beq loc_0x073                   # 0x41820008
+loc_0x072:
 	li r3, 0x0                      # 0x38600000
+loc_0x073:
 	lfd f30, 0x10(r2)               # 0xCBC20010
 	lfd f31, 0x18(r2)               # 0xCBE20018
 	nop                             # 0x60000000
@@ -397,140 +426,154 @@ Bit Variables Beyond 255 and Negative Offset Variables [Magus]
 #############################################################
 HOOK @ $807AC9E4                # Address = $(ba + 0x007AC9E4) [in "getInt/[soWorkManageModuleImpl]/so_work_manage_module_imp" @ $807AC9E0]
 {
-	rlwinm. r12, r4, 0, 8, 8        # (Mask: 0x00800000)# 0x548C0211
-	rlwinm r4, r4, 0, 9, 31         # (Mask: 0x007fffff)# 0x5484027E
-	beq+ 0x8                        # 0x41A20008
+	rlwinm. r12, r4, 0, 8, 8        # (Mask: 0x00800000)| 0x548C0211
+	rlwinm r4, r4, 0, 9, 31         # (Mask: 0x007fffff)| 0x5484027E
+	beq+ loc_0x004                  # 0x41A20008
 	neg r4, r4                      # 0x7C8400D0
+loc_0x004:
 	nop                             # 0x60000000
 }
 HOOK @ $807ACA04                # Address = $(ba + 0x007ACA04) [in "setInt/[soWorkManageModuleImpl]/so_work_manage_module_imp" @ $807ACA00]
 {
-	rlwinm. r12, r5, 0, 8, 8        # (Mask: 0x00800000)# 0x54AC0211
-	rlwinm r5, r5, 0, 9, 31         # (Mask: 0x007fffff)# 0x54A5027E
-	beq+ 0x8                        # 0x41A20008
+	rlwinm. r12, r5, 0, 8, 8        # (Mask: 0x00800000)| 0x54AC0211
+	rlwinm r5, r5, 0, 9, 31         # (Mask: 0x007fffff)| 0x54A5027E
+	beq+ loc_0x004                  # 0x41A20008
 	neg r5, r5                      # 0x7CA500D0
+loc_0x004:
 	nop                             # 0x60000000
 }
 HOOK @ $807ACB78                # Address = $(ba + 0x007ACB78) [in "addInt/[soWorkManageModuleImpl]/so_work_manage_module_imp" @ $807ACB74]
 {
-	rlwinm. r12, r5, 0, 8, 8        # (Mask: 0x00800000)# 0x54AC0211
-	rlwinm r5, r5, 0, 9, 31         # (Mask: 0x007fffff)# 0x54A5027E
-	beq+ 0x8                        # 0x41A20008
+	rlwinm. r12, r5, 0, 8, 8        # (Mask: 0x00800000)| 0x54AC0211
+	rlwinm r5, r5, 0, 9, 31         # (Mask: 0x007fffff)| 0x54A5027E
+	beq+ loc_0x004                  # 0x41A20008
 	neg r5, r5                      # 0x7CA500D0
+loc_0x004:
 	nop                             # 0x60000000
 }
 HOOK @ $807ACB98                # Address = $(ba + 0x007ACB98) [in "subInt/[soWorkManageModuleImpl]/so_work_manage_module_imp" @ $807ACB94]
 {
-	rlwinm. r12, r5, 0, 8, 8        # (Mask: 0x00800000)# 0x54AC0211
-	rlwinm r5, r5, 0, 9, 31         # (Mask: 0x007fffff)# 0x54A5027E
-	beq+ 0x8                        # 0x41A20008
+	rlwinm. r12, r5, 0, 8, 8        # (Mask: 0x00800000)| 0x54AC0211
+	rlwinm r5, r5, 0, 9, 31         # (Mask: 0x007fffff)| 0x54A5027E
+	beq+ loc_0x004                  # 0x41A20008
 	neg r5, r5                      # 0x7CA500D0
+loc_0x004:
 	nop                             # 0x60000000
 }
 HOOK @ $807ACAA0                # Address = $(ba + 0x007ACAA0) [in "incInt/[soWorkManageModuleImpl]/so_work_manage_module_imp" @ $807ACA9C]
 {
-	rlwinm. r12, r4, 0, 8, 8        # (Mask: 0x00800000)# 0x548C0211
-	rlwinm r4, r4, 0, 9, 31         # (Mask: 0x007fffff)# 0x5484027E
-	beq+ 0x8                        # 0x41A20008
+	rlwinm. r12, r4, 0, 8, 8        # (Mask: 0x00800000)| 0x548C0211
+	rlwinm r4, r4, 0, 9, 31         # (Mask: 0x007fffff)| 0x5484027E
+	beq+ loc_0x004                  # 0x41A20008
 	neg r4, r4                      # 0x7C8400D0
+loc_0x004:
 	nop                             # 0x60000000
 }
 HOOK @ $807ACAC0                # Address = $(ba + 0x007ACAC0) [in "decInt/[soWorkManageModuleImpl]/so_work_manage_module_imp" @ $807ACABC]
 {
-	rlwinm. r12, r4, 0, 8, 8        # (Mask: 0x00800000)# 0x548C0211
-	rlwinm r4, r4, 0, 9, 31         # (Mask: 0x007fffff)# 0x5484027E
-	beq+ 0x8                        # 0x41A20008
+	rlwinm. r12, r4, 0, 8, 8        # (Mask: 0x00800000)| 0x548C0211
+	rlwinm r4, r4, 0, 9, 31         # (Mask: 0x007fffff)| 0x5484027E
+	beq+ loc_0x004                  # 0x41A20008
 	neg r4, r4                      # 0x7C8400D0
+loc_0x004:
 	nop                             # 0x60000000
 }
 HOOK @ $807AD114                # Address = $(ba + 0x007AD114) [in "notifyEventAnimCmd/[soWorkManageModuleImpl]/so_work_manag" @ $807ACDC8]
 {
-	rlwinm. r12, r30, 0, 8, 8       # (Mask: 0x00800000)# 0x57CC0211
-	rlwinm r5, r30, 0, 9, 31        # (Mask: 0x007fffff)# 0x57C5027E
-	beq+ 0x8                        # 0x41A20008
+	rlwinm. r12, r30, 0, 8, 8       # (Mask: 0x00800000)| 0x57CC0211
+	rlwinm r5, r30, 0, 9, 31        # (Mask: 0x007fffff)| 0x57C5027E
+	beq+ loc_0x004                  # 0x41A20008
 	neg r5, r5                      # 0x7CA500D0
+loc_0x004:
 	nop                             # 0x60000000
 }
 HOOK @ $807AD15C                # Address = $(ba + 0x007AD15C) [in "notifyEventAnimCmd/[soWorkManageModuleImpl]/so_work_manag" @ $807ACDC8]
 {
-	rlwinm. r12, r30, 0, 8, 8       # (Mask: 0x00800000)# 0x57CC0211
-	rlwinm r5, r30, 0, 9, 31        # (Mask: 0x007fffff)# 0x57C5027E
-	beq+ 0x8                        # 0x41A20008
+	rlwinm. r12, r30, 0, 8, 8       # (Mask: 0x00800000)| 0x57CC0211
+	rlwinm r5, r30, 0, 9, 31        # (Mask: 0x007fffff)| 0x57C5027E
+	beq+ loc_0x004                  # 0x41A20008
 	neg r5, r5                      # 0x7CA500D0
+loc_0x004:
 	nop                             # 0x60000000
 }
 HOOK @ $807ACBB8                # Address = $(ba + 0x007ACBB8) [in "getFloat/[soWorkManageModuleImpl]/so_work_manage_module_i" @ $807ACBB4]
 {
-	rlwinm. r12, r4, 0, 8, 8        # (Mask: 0x00800000)# 0x548C0211
-	rlwinm r4, r4, 0, 9, 31         # (Mask: 0x007fffff)# 0x5484027E
-	beq+ 0x8                        # 0x41A20008
+	rlwinm. r12, r4, 0, 8, 8        # (Mask: 0x00800000)| 0x548C0211
+	rlwinm r4, r4, 0, 9, 31         # (Mask: 0x007fffff)| 0x5484027E
+	beq+ loc_0x004                  # 0x41A20008
 	neg r4, r4                      # 0x7C8400D0
+loc_0x004:
 	nop                             # 0x60000000
 }
 HOOK @ $807ACBD8                # Address = $(ba + 0x007ACBD8) [in "setFloat/[soWorkManageModuleImpl]/so_work_manage_module_i" @ $807ACBD4]
 {
-	rlwinm. r12, r4, 0, 8, 8        # (Mask: 0x00800000)# 0x548C0211
-	rlwinm r4, r4, 0, 9, 31         # (Mask: 0x007fffff)# 0x5484027E
-	beq+ 0x8                        # 0x41A20008
+	rlwinm. r12, r4, 0, 8, 8        # (Mask: 0x00800000)| 0x548C0211
+	rlwinm r4, r4, 0, 9, 31         # (Mask: 0x007fffff)| 0x5484027E
+	beq+ loc_0x004                  # 0x41A20008
 	neg r4, r4                      # 0x7C8400D0
+loc_0x004:
 	nop                             # 0x60000000
 }
 HOOK @ $807ACCA0                # Address = $(ba + 0x007ACCA0) [in "addFloat/[soWorkManageModuleImpl]/so_work_manage_module_i" @ $807ACC9C]
 {
-	rlwinm. r12, r4, 0, 8, 8        # (Mask: 0x00800000)# 0x548C0211
-	rlwinm r4, r4, 0, 9, 31         # (Mask: 0x007fffff)# 0x5484027E
-	beq+ 0x8                        # 0x41A20008
+	rlwinm. r12, r4, 0, 8, 8        # (Mask: 0x00800000)| 0x548C0211
+	rlwinm r4, r4, 0, 9, 31         # (Mask: 0x007fffff)| 0x5484027E
+	beq+ loc_0x004                  # 0x41A20008
 	neg r4, r4                      # 0x7C8400D0
+loc_0x004:
 	nop                             # 0x60000000
 }
 HOOK @ $807ACCC0                # Address = $(ba + 0x007ACCC0) [in "subFloat/[soWorkManageModuleImpl]/so_work_manage_module_i" @ $807ACCBC]
 {
-	rlwinm. r12, r4, 0, 8, 8        # (Mask: 0x00800000)# 0x548C0211
-	rlwinm r4, r4, 0, 9, 31         # (Mask: 0x007fffff)# 0x5484027E
-	beq+ 0x8                        # 0x41A20008
+	rlwinm. r12, r4, 0, 8, 8        # (Mask: 0x00800000)| 0x548C0211
+	rlwinm r4, r4, 0, 9, 31         # (Mask: 0x007fffff)| 0x5484027E
+	beq+ loc_0x004                  # 0x41A20008
 	neg r4, r4                      # 0x7C8400D0
+loc_0x004:
 	nop                             # 0x60000000
 }
 HOOK @ $807AD528                # Address = $(ba + 0x007AD528) [in "notifyEventAnimCmd/[soWorkManageModuleImpl]/so_work_manag" @ $807ACDC8]
 {
-	rlwinm. r12, r30, 0, 8, 8       # (Mask: 0x00800000)# 0x57CC0211
-	rlwinm r4, r30, 0, 9, 31        # (Mask: 0x007fffff)# 0x57C4027E
-	beq+ 0x8                        # 0x41A20008
+	rlwinm. r12, r30, 0, 8, 8       # (Mask: 0x00800000)| 0x57CC0211
+	rlwinm r4, r30, 0, 9, 31        # (Mask: 0x007fffff)| 0x57C4027E
+	beq+ loc_0x004                  # 0x41A20008
 	neg r4, r4                      # 0x7C8400D0
+loc_0x004:
 	nop                             # 0x60000000
 }
 HOOK @ $807AD570                # Address = $(ba + 0x007AD570) [in "notifyEventAnimCmd/[soWorkManageModuleImpl]/so_work_manag" @ $807ACDC8]
 {
-	rlwinm. r12, r30, 0, 8, 8       # (Mask: 0x00800000)# 0x57CC0211
-	rlwinm r4, r30, 0, 9, 31        # (Mask: 0x007fffff)# 0x57C4027E
-	beq+ 0x8                        # 0x41A20008
+	rlwinm. r12, r30, 0, 8, 8       # (Mask: 0x00800000)| 0x57CC0211
+	rlwinm r4, r30, 0, 9, 31        # (Mask: 0x007fffff)| 0x57C4027E
+	beq+ loc_0x004                  # 0x41A20008
 	neg r4, r4                      # 0x7C8400D0
+loc_0x004:
 	nop                             # 0x60000000
 }
 HOOK @ $807ACCEC                # Address = $(ba + 0x007ACCEC) [in "isFlag/[soWorkManageModuleImpl]/so_work_manage_module_imp" @ $807ACCDC]
 {
-	rlwinm r0, r4, 0, 9, 31         # (Mask: 0x007fffff)# 0x5480027E
+	rlwinm r0, r4, 0, 9, 31         # (Mask: 0x007fffff)| 0x5480027E
 	srawi r0, r0, 5                 # 0x7C002E70
-	rlwinm. r12, r4, 0, 8, 8        # (Mask: 0x00800000)# 0x548C0211
-	beq+ 0x8                        # 0x41A20008
+	rlwinm. r12, r4, 0, 8, 8        # (Mask: 0x00800000)| 0x548C0211
+	beq+ %END%                      # 0x41A20008
 	neg r0, r0                      # 0x7C0000D0
 }
 * 047ACCF8 60000000             # 32-Bit Write @ $(ba + 0x007ACCF8):  0x60000000
 HOOK @ $807ACD20                # Address = $(ba + 0x007ACD20) [in "onFlag/[soWorkManageModuleImpl]/so_work_manage_module_imp" @ $807ACD10]
 {
-	rlwinm r0, r4, 0, 9, 31         # (Mask: 0x007fffff)# 0x5480027E
+	rlwinm r0, r4, 0, 9, 31         # (Mask: 0x007fffff)| 0x5480027E
 	srawi r0, r0, 5                 # 0x7C002E70
-	rlwinm. r12, r4, 0, 8, 8        # (Mask: 0x00800000)# 0x548C0211
-	beq+ 0x8                        # 0x41A20008
+	rlwinm. r12, r4, 0, 8, 8        # (Mask: 0x00800000)| 0x548C0211
+	beq+ %END%                      # 0x41A20008
 	neg r0, r0                      # 0x7C0000D0
 }
 * 047ACD2C 60000000             # 32-Bit Write @ $(ba + 0x007ACD2C):  0x60000000
 HOOK @ $807ACD54                # Address = $(ba + 0x007ACD54) [in "offFlag/[soWorkManageModuleImpl]/so_work_manage_module_im" @ $807ACD44]
 {
-	rlwinm r0, r4, 0, 9, 31         # (Mask: 0x007fffff)# 0x5480027E
+	rlwinm r0, r4, 0, 9, 31         # (Mask: 0x007fffff)| 0x5480027E
 	srawi r0, r0, 5                 # 0x7C002E70
-	rlwinm. r12, r4, 0, 8, 8        # (Mask: 0x00800000)# 0x548C0211
-	beq+ 0x8                        # 0x41A20008
+	rlwinm. r12, r4, 0, 8, 8        # (Mask: 0x00800000)| 0x548C0211
+	beq+ %END%                      # 0x41A20008
 	neg r0, r0                      # 0x7C0000D0
 }
 * 047ACD60 60000000             # 32-Bit Write @ $(ba + 0x007ACD60):  0x60000000
@@ -542,14 +585,15 @@ HOOK @ $80781310                # Address = $(ba + 0x00781310) [in "checkEstabli
 {
 	lwz r4, 0x0(r24)                # 0x80980000
 	cmpwi r4, 0x21                  # 0x2C040021
-	bne+ 0x20                       # 0x40A20020
+	bne+ loc_0x00A                  # 0x40A20020
 	lwz r4, 0x7c(r23)               # 0x8097007C
 	lwz r4, 0x34(r4)                # 0x80840034
 	cmpwi r4, 0x42                  # 0x2C040042
-	blt+ 0x10                       # 0x41A00010
+	blt+ loc_0x00A                  # 0x41A00010
 	cmpwi r4, 0x49                  # 0x2C040049
-	bgt+ 0x8                        # 0x41A10008
+	bgt+ loc_0x00A                  # 0x41A10008
 	li r3, 0x0                      # 0x38600000
+loc_0x00A:
 	addi r11, r1, 0x40              # 0x39610040
 }
 
@@ -560,36 +604,41 @@ HOOK @ $8077F190                # Address = $(ba + 0x0077F190) [in "checkTransit
 {
 	lwz r4, 0x10(r1)                # 0x80810010
 	cmpwi r4, 0x46                  # 0x2C040046
-	blt+ 0x78                       # 0x41A00078
+	blt+ loc_0x020                  # 0x41A00078
 	cmpwi r4, 0x4c                  # 0x2C04004C
-	bgt+ 0x70                       # 0x41A10070
+	bgt+ loc_0x020                  # 0x41A10070
 	lwz r5, 0x68(r31)               # 0x80BF0068
 	lbz r6, 0x8f(r5)                # 0x88C5008F
 	cmpwi r6, 0x14                  # 0x2C060014
-	bge+ 0x60                       # 0x40A00060
+	bge+ loc_0x020                  # 0x40A00060
 	lbz r7, 0x8e(r5)                # 0x88E5008E
 	cmpwi r7, 0x28                  # 0x2C070028
-	blt 0x54                        # 0x41800054
+	blt loc_0x020                   # 0x41800054
 	cmpwi r4, 0x49                  # 0x2C040049
-	beq 0x4c                        # 0x4182004C
-	blt+ 0x8                        # 0x41A00008
+	beq loc_0x020                   # 0x4182004C
+	blt+ loc_0x010                  # 0x41A00008
 	subi r4, r4, 0x4                # 0x3884FFFC
+loc_0x010:
 	subi r4, r4, 0x46               # 0x3884FFBA
-	rlwinm r4, r4, 1, 0, 30         # (Mask: 0x7fffffff)# 0x5484083C
+	rlwinm r4, r4, 1, 0, 30         # (Mask: 0x7fffffff)| 0x5484083C
 	addi r4, r4, 0x60               # 0x38840060
 	cmpwi r4, 0x62                  # 0x2C040062
-	bgt 0x2c                        # 0x4181002C
-	beq 0x10                        # 0x41820010
+	bgt loc_0x01F                   # 0x4181002C
+	beq loc_0x019                   # 0x41820010
 	lwz r6, 0x38(r5)                # 0x80C50038
-	rlwinm r6, r6, 13, 20, 31       # (Mask: 0x7ff80000)# 0x54C66D3E
-	b 0x10                          # 0x48000010
+	rlwinm r6, r6, 13, 20, 31       # (Mask: 0x7ff80000)| 0x54C66D3E
+	b loc_0x01C                     # 0x48000010
+loc_0x019:
 	lwz r6, 0x3c(r5)                # 0x80C5003C
 	srawi r6, r6, 19                # 0x7CC69E70
 	subi r6, r6, 0x14               # 0x38C6FFEC
+loc_0x01C:
 	cmpwi r6, 0x7d0                 # 0x2C0607D0
-	blt+ 0x8                        # 0x41A00008
+	blt+ loc_0x01F                  # 0x41A00008
 	ori r4, r4, 0x1                 # 0x60840001
+loc_0x01F:
 	stw r4, 0x10(r1)                # 0x90810010
+loc_0x020:
 	nop                             # 0x60000000
 }
 
@@ -601,33 +650,35 @@ HOOK @ $80794D3C                # Address = $(ba + 0x00794D3C) [in "updateEnergy
 	lis r4, 0x8100                  # 0x3C808100
 	ori r4, r4, 0x0                 # 0x60840000
 	cmpw r26, r4                    # 0x7C1A2000
-	blt 0x60                        # 0x41800060
+	blt loc_0x01B                   # 0x41800060
 	lis r4, 0x8170                  # 0x3C808170
 	ori r4, r4, 0x0                 # 0x60840000
 	cmpw r26, r4                    # 0x7C1A2000
-	bgt 0x50                        # 0x41810050
+	bgt loc_0x01B                   # 0x41810050
 	lwz r4, 0x4c(r26)               # 0x809A004C
 	cmpw r4, r30                    # 0x7C04F000
-	bne 0x44                        # 0x40820044
+	bne loc_0x01B                   # 0x40820044
 	lwz r4, 0x1c(r26)               # 0x809A001C
 	lwz r4, 0xd0(r4)                # 0x808400D0
 	lfs f0, 0x24(r4)                # 0xC0040024
 	fabs f1, f3                     # 0xFC201A10
 	fcmpo cr0, f0, f1               # 0xFC000840
-	bne 0x2c                        # 0x4082002C
+	bne loc_0x01B                   # 0x4082002C
 	lfs f1, 0x20(r4)                # 0xC0240020
 	lfs f0, 0x8(r30)                # 0xC01E0008
 	fabs f0, f0                     # 0xFC000210
 	fcmpo cr0, f0, f1               # 0xFC000840
-	ble 0x18                        # 0x40810018
+	ble loc_0x01B                   # 0x40810018
 	lfs f0, 0x8(r30)                # 0xC01E0008
 	fadds f1, f3, f3                # 0xEC23182A
 	fadds f0, f0, f1                # 0xEC00082A
 	lfs f1, 0xc(r30)                # 0xC03E000C
-	b 0x10                          # 0x48000010
+	b loc_0x01E                     # 0x48000010
+loc_0x01B:
 	lfs f0, 0x8(r30)                # 0xC01E0008
 	lfs f1, 0xc(r30)                # 0xC03E000C
 	fadds f0, f0, f3                # 0xEC00182A
+loc_0x01E:
 	nop                             # 0x60000000
 }
 
@@ -642,23 +693,26 @@ HOOK @ $8084FFA4                # Address = $(ba + 0x0084FFA4) [in "getParamComm
 	lis r30, 0x8085                 # 0x3FC08085
 	ori r30, r30, 0x5c9c            # 0x63DE5C9C
 	cmpw r31, r30                   # 0x7C1FF000
-	bne 0x40                        # 0x40820040
+	bne loc_0x016                   # 0x40820040
 	lis r30, 0x80b8                 # 0x3FC080B8
 	ori r30, r30, 0xb33c            # 0x63DEB33C
 	cmpw r3, r30                    # 0x7C03F000
-	bne+ 0x30                       # 0x40A20030
+	bne+ loc_0x016                  # 0x40A20030
 	cmpwi r28, 0x0                  # 0x2C1C0000
-	beq 0x18                        # 0x41820018
+	beq loc_0x012                   # 0x41820018
 	cmpwi r28, 0x3                  # 0x2C1C0003
-	beq 0x10                        # 0x41820010
+	beq loc_0x012                   # 0x41820010
 	cmpwi r28, 0x10c                # 0x2C1C010C
-	beq 0x8                         # 0x41820008
-	b 0x14                          # 0x48000014
+	beq loc_0x012                   # 0x41820008
+	b loc_0x016                     # 0x48000014
+loc_0x012:
 	lis r31, 0x3f80                 # 0x3FE03F80
 	stw r31, 0x10(r2)               # 0x93E20010
 	lfs f1, 0x10(r2)                # 0xC0220010
-	b 0x8                           # 0x48000008
+	b loc_0x017                     # 0x48000008
+loc_0x016:
 	lfs f1, -0x30ac(r3)             # 0xC023CF54
+loc_0x017:
 	lmw r30, 0x8(r1)                # 0xBBC10008
 	addi r1, r1, 0x10               # 0x38210010
 }
@@ -671,26 +725,27 @@ HOOK @ $80840820                # Address = $(ba + 0x00840820) [in "notifyEventC
 	lis r12, 0x8180                 # 0x3D808180
 	lwz r4, 0x60(r3)                # 0x80830060
 	cmpw r4, r12                    # 0x7C046000
-	bge 0x50                        # 0x40800050
+	bge loc_0x017                   # 0x40800050
 	lwz r5, 0x7c(r4)                # 0x80A4007C
 	cmpw r5, r12                    # 0x7C056000
-	bge 0x44                        # 0x40800044
+	bge loc_0x017                   # 0x40800044
 	lhz r5, 0x36(r5)                # 0xA0A50036
 	cmpwi r5, 0x1a                  # 0x2C05001A
-	blt 0x38                        # 0x41800038
+	blt loc_0x017                   # 0x41800038
 	cmpwi r5, 0x1d                  # 0x2C05001D
-	bgt 0x30                        # 0x41810030
+	bgt loc_0x017                   # 0x41810030
 	lwz r6, 0x70(r4)                # 0x80C40070
 	cmpw r6, r12                    # 0x7C066000
-	bge 0x24                        # 0x40800024
+	bge loc_0x017                   # 0x40800024
 	lwz r6, 0x24(r6)                # 0x80C60024
 	cmpw r6, r12                    # 0x7C066000
-	bge 0x18                        # 0x40800018
+	bge loc_0x017                   # 0x40800018
 	lwz r6, 0x1c(r6)                # 0x80C6001C
 	cmpw r6, r12                    # 0x7C066000
-	bge 0xc                         # 0x4080000C
+	bge loc_0x017                   # 0x4080000C
 	li r7, 0x4                      # 0x38E00004
 	stb r7, 0x2(r6)                 # 0x98E60002
+loc_0x017:
 	lwz r3, 0x60(r3)                # 0x80630060
 	nop                             # 0x60000000
 }
@@ -703,13 +758,15 @@ HOOK @ $80874B34                # Address = $(ba + 0x00874B34) [in "updateShield
 	lwz r12, 0x7c(r27)              # 0x819B007C
 	lhz r12, 0x36(r12)              # 0xA18C0036
 	cmpwi r12, 0x1a                 # 0x2C0C001A
-	bne+ 0x18                       # 0x40A20018
+	bne+ loc_0x009                  # 0x40A20018
 	lwz r12, 0x14(r27)              # 0x819B0014
 	lwz r12, 0x40(r12)              # 0x818C0040
 	lis r11, 0x4080                 # 0x3D604080
 	cmpw r12, r11                   # 0x7C0C5800
-	blt 0x8                         # 0x41800008
+	blt loc_0x00A                   # 0x41800008
+loc_0x009:
 	bctrl                           # 0x4E800421
+loc_0x00A:
 	nop                             # 0x60000000
 }
 
@@ -746,23 +803,25 @@ HOOK @ $80041D68                # Address = $(ba + 0x00041D68) [in "checkInterse
 	ori r9, r9, 0x1044              # 0x61291044
 	mflr r10                        # 0x7D4802A6
 	cmpw r9, r10                    # 0x7C095000
-	bne+ 0x1c                       # 0x40A2001C
+	bne+ loc_0x00C                  # 0x40A2001C
 	lis r7, 0x3d8f                  # 0x3CE03D8F
 	ori r7, r7, 0x5c29              # 0x60E75C29
 	lwz r8, 0x9fc(r3)               # 0x810309FC
 	cmpw r7, r8                     # 0x7C074000
-	bne+ 0x8                        # 0x40A20008
+	bne+ loc_0x00C                  # 0x40A20008
 	lfs f0, -0xc(r4)                # 0xC004FFF4
+loc_0x00C:
 	nop                             # 0x60000000
 }
 HOOK @ $80041D98                # Address = $(ba + 0x00041D98) [in "checkIntersect/[clAABBox2D]/mt_coll2d.o" @ $80041D64]
 {
 	lfs f0, 0x8(r4)                 # 0xC0040008
 	cmpw r9, r10                    # 0x7C095000
-	bne+ 0x10                       # 0x40A20010
+	bne+ loc_0x006                  # 0x40A20010
 	cmpw r7, r8                     # 0x7C074000
-	bne+ 0x8                        # 0x40A20008
+	bne+ loc_0x006                  # 0x40A20008
 	lfs f0, -0xc(r4)                # 0xC004FFF4
+loc_0x006:
 	nop                             # 0x60000000
 }
 
@@ -786,7 +845,7 @@ HOOK @ $800E2168                # Address = $(ba + 0x000E2168) [in "setStockMark
 	lis r11, 0x9018                 # 0x3D609018
 	lbz r11, -0xc81(r11)            # 0x896BF37F
 	cmpwi r11, 0x2                  # 0x2C0B0002
-	bne 0x7c                        # 0x4082007C
+	bne loc_0x023                   # 0x4082007C
 	li r9, 0xa5                     # 0x392000A5
 	lis r10, 0x8058                 # 0x3D408058
 	ori r10, r10, 0x8000            # 0x614A8000
@@ -796,77 +855,89 @@ HOOK @ $800E2168                # Address = $(ba + 0x000E2168) [in "setStockMark
 	lbz r11, 0x9e(r10)              # 0x896A009E
 	lwz r5, 0x20(r31)               # 0x80BF0020
 	cmpwi r5, 0x6                   # 0x2C050006
-	bgt 0x20                        # 0x41810020
+	bgt loc_0x016                   # 0x41810020
 	cmpwi r5, 0x0                   # 0x2C050000
-	bne 0x30                        # 0x40820030
+	bne loc_0x01C                   # 0x40820030
 	lis r5, 0x8128                  # 0x3CA08128
 	ori r5, r5, 0xae64              # 0x60A5AE64
 	lwz r5, 0x0(r5)                 # 0x80A50000
 	cmpwi r5, 0x6                   # 0x2C050006
-	ble 0x1c                        # 0x4081001C
+	ble loc_0x01C                   # 0x4081001C
+loc_0x016:
 	lbzx r12, r10, r11              # 0x7D8A58AE
 	cmpwi r12, 0xcc                 # 0x2C0C00CC
-	bne 0xc                         # 0x4082000C
+	bne loc_0x01B                   # 0x4082000C
 	li r11, 0x3                     # 0x39600003
-	b 0x8                           # 0x48000008
+	b loc_0x01C                     # 0x48000008
+loc_0x01B:
 	addi r11, r11, 0x3              # 0x396B0003
+loc_0x01C:
 	lbzx r12, r10, r11              # 0x7D8A58AE
 	cmpwi r12, 0xcc                 # 0x2C0C00CC
-	bne 0x14                        # 0x40820014
+	bne loc_0x023                   # 0x40820014
 	cmpwi r11, 0x0                  # 0x2C0B0000
-	beq 0xc                         # 0x4182000C
+	beq loc_0x023                   # 0x4182000C
 	li r11, 0x0                     # 0x39600000
-	b -0x18                         # 0x4BFFFFE8
+	b loc_0x01C                     # 0x4BFFFFE8
+loc_0x023:
 	lis r29, 0x8045                 # 0x3FA08045
 	li r6, 0x3d                     # 0x38C0003D
 	addi r29, r29, 0x56d8           # 0x3BBD56D8
 	mtctr r6                        # 0x7CC903A6
+loc_0x027:
 	lbz r6, 0x2(r29)                # 0x88DD0002
 	cmpw r12, r6                    # 0x7C0C3000
-	beq 0x20                        # 0x41820020
+	beq loc_0x031                   # 0x41820020
 	lbz r6, 0x3(r29)                # 0x88DD0003
 	cmpw r12, r6                    # 0x7C0C3000
-	beq 0x14                        # 0x41820014
+	beq loc_0x031                   # 0x41820014
 	addi r29, r29, 0x10             # 0x3BBD0010
-	bc 17, 0,  -0x1c                # 0x4200FFE4
+	bdnz+ loc_0x027                 # 0x4200FFE4
 	lis r29, 0x8045                 # 0x3FA08045
 	addi r29, r29, 0x56d8           # 0x3BBD56D8
+loc_0x031:
 	mr r7, r12                      # 0x7D876378
 	lbz r12, 0x0(r29)               # 0x899D0000
 	cmpwi r12, 0x42                 # 0x2C0C0042
-	bne+ 0x8                        # 0x40A20008
+	bne+ loc_0x036                  # 0x40A20008
 	li r12, 0x25                    # 0x39800025
+loc_0x036:
 	lbz r6, 0xed(r1)                # 0x88C100ED
 	cmpwi r9, 0xa5                  # 0x2C0900A5
-	bne 0x2c                        # 0x4082002C
+	bne loc_0x043                   # 0x4082002C
 	lwzx r6, r10, r11               # 0x7CCA582E
-	rlwinm r6, r6, 16, 0, 15        # (Mask: 0x0000ffff)# 0x54C6801E
-	rlwinm r6, r6, 8, 24, 31        # (Mask: 0xff000000)# 0x54C6463E
+	rlwinm r6, r6, 16, 0, 15        # (Mask: 0x0000ffff)| 0x54C6801E
+	rlwinm r6, r6, 8, 24, 31        # (Mask: 0xff000000)| 0x54C6463E
 	addi r11, r11, 0x3              # 0x396B0003
 	stb r11, 0x9e(r10)              # 0x996A009E
 	cmpwi r27, 0x4                  # 0x2C1B0004
-	bne 0x10                        # 0x40820010
+	bne loc_0x043                   # 0x40820010
 	lbz r9, 0x9c(r10)               # 0x892A009C
 	addi r9, r9, 0x3                # 0x39290003
 	stb r9, 0x9e(r10)               # 0x992A009E
+loc_0x043:
 	mulli r12, r12, 0x32            # 0x1D8C0032
 	cmpwi r7, 0x2d                  # 0x2C07002D
-	bne+ 0x8                        # 0x40A20008
+	bne+ loc_0x047                  # 0x40A20008
 	li r12, 0x2328                  # 0x39802328
+loc_0x047:
 	add r12, r12, r6                # 0x7D8C3214
 	addi r7, r12, 0x1               # 0x38EC0001
 	cmpwi r27, 0x0                  # 0x2C1B0000
-	bne 0xc                         # 0x4082000C
+	bne loc_0x04D                   # 0x4082000C
 	mr r8, r4                       # 0x7C882378
 	mr r28, r31                     # 0x7FFCFB78
+loc_0x04D:
 	lis r12, 0x80c2                 # 0x3D8080C2
 	lhz r12, 0x4314(r12)            # 0xA18C4314
 	li r29, 0x5f65                  # 0x3BA05F65
 	cmpw r12, r29                   # 0x7C0CE800
-	beq 0xc                         # 0x4182000C
+	beq loc_0x054                   # 0x4182000C
 	xoris r30, r8, 0x8000           # 0x6D1E8000
-	b 0x8                           # 0x48000008
+	b loc_0x055                     # 0x48000008
+loc_0x054:
 	xoris r30, r7, 0x8000           # 0x6CFE8000
+loc_0x055:
 	lwz r29, 0x8c(r28)              # 0x83BC008C
 	nop                             # 0x60000000
 }
@@ -875,12 +946,13 @@ HOOK @ $800E2168                # Address = $(ba + 0x000E2168) [in "setStockMark
 HOOK @ $8003D8B4                # Address = $(ba + 0x0003D8B4) [in "loadResource/[gfResourceLoader]/gf_resource_loader.o" @ $8003D864]
 {
 	cmpwi r9, 0xb                   # 0x2C09000B
-	bne 0x18                        # 0x40820018
+	bne loc_0x007                   # 0x40820018
 	lis r3, 0x6                     # 0x3C600006
 	addi r3, r3, 0x1c00             # 0x38631C00
 	lis r4, 0x2                     # 0x3C800002
 	addi r4, r4, 0x7180             # 0x38847180
 	add r3, r4, r3                  # 0x7C641A14
+loc_0x007:
 	lbz r0, 0x1c(r27)               # 0x881B001C
 	nop                             # 0x60000000
 }
@@ -910,18 +982,21 @@ HOOK @ $800E2090                # Address = $(ba + 0x000E2090) [in "setStockFace
 	lis r27, 0x8098                 # 0x3F608098
 	ori r27, r27, 0x8e8c            # 0x637B8E8C
 	cmpw r12, r27                   # 0x7C0CD800
-	bne 0x5c                        # 0x4082005C
+	bne loc_0x020                   # 0x4082005C
 	lis r27, 0x9018                 # 0x3F609018
 	lbz r27, -0xc81(r27)            # 0x8B7BF37F
 	cmpwi r27, 0x2                  # 0x2C1B0002
-	bne 0xc                         # 0x4082000C
+	bne loc_0x010                   # 0x4082000C
 	li r27, 0x1                     # 0x3B600001
-	b 0x8                           # 0x48000008
+	b loc_0x011                     # 0x48000008
+loc_0x010:
 	li r27, 0x5                     # 0x3B600005
+loc_0x011:
 	xoris r26, r26, 0x8000          # 0x6F5A8000
 	stw r28, 0x4(r2)                # 0x93820004
 	stw r26, 0x8(r2)                # 0x93420008
 	mr r28, r29                     # 0x7FBCEB78
+loc_0x015:
 	lwz r3, 0x8c(r28)               # 0x807C008C
 	lfd f1, 0x4(r2)                 # 0xC8220004
 	fsubs f1, f1, f28               # 0xEC21E028
@@ -932,7 +1007,8 @@ HOOK @ $800E2090                # Address = $(ba + 0x000E2090) [in "setStockFace
 	addi r28, r28, 0x4              # 0x3B9C0004
 	subi r27, r27, 0x1              # 0x3B7BFFFF
 	cmpwi r27, 0x0                  # 0x2C1B0000
-	bgt -0x28                       # 0x41A1FFD8
+	bgt loc_0x015                   # 0x41A1FFD8
+loc_0x020:
 	lwz r0, 0x0(r2)                 # 0x80020000
 	lmw r3, 0x10(r1)                # 0xB8610010
 	lwz r1, 0x0(r1)                 # 0x80210000
@@ -948,9 +1024,10 @@ HOOK @ $806895F4                # Address = $(ba + 0x006895F4) [in "moveCoin/[mu
 	lwz r3, 0x1f4(r27)              # 0x807B01F4
 	lbz r3, 0x5c8(r3)               # 0x886305C8
 	cmpwi r3, 0x0                   # 0x2C030000
-	beq 0xc                         # 0x4182000C
+	beq loc_0x006                   # 0x4182000C
 	li r3, 0x0                      # 0x38600000
 	stb r3, 0x1c4(r27)              # 0x987B01C4
+loc_0x006:
 	mr r3, r27                      # 0x7F63DB78
 }
 HOOK @ $8068A498                # Address = $(ba + 0x0068A498) [in "buttonProcInAllArea/[muSelCharTask]/mu_selchar.o" @ $8068A358]
@@ -958,30 +1035,33 @@ HOOK @ $8068A498                # Address = $(ba + 0x0068A498) [in "buttonProcIn
 	lis r12, 0x9019                 # 0x3D809019
 	lbz r4, -0x5f1c(r12)            # 0x888CA0E4
 	cmpwi r0, 0x1f                  # 0x2C00001F
-	bne 0x24                        # 0x40820024
+	bne loc_0x00C                   # 0x40820024
 	cmpwi r4, 0xcc                  # 0x2C0400CC
-	beq 0x1c                        # 0x4182001C
+	beq loc_0x00C                   # 0x4182001C
 	cmpwi r4, 0x0                   # 0x2C040000
-	ble 0x20                        # 0x40810020
+	ble loc_0x00F                   # 0x40810020
 	li r4, 0x0                      # 0x38800000
 	li r5, 0x1                      # 0x38A00001
 	li r0, 0x20                     # 0x38000020
-	b 0x18                          # 0x48000018
+	b loc_0x011                     # 0x48000018
+loc_0x00C:
 	li r4, 0x1                      # 0x38800001
 	li r5, 0x0                      # 0x38A00000
-	b 0xc                           # 0x4800000C
+	b loc_0x011                     # 0x4800000C
+loc_0x00F:
 	li r4, 0x0                      # 0x38800000
 	li r5, 0x0                      # 0x38A00000
+loc_0x011:
 	stb r4, -0x5f1c(r12)            # 0x988CA0E4
 	stb r5, -0x5f1b(r12)            # 0x98ACA0E5
-	rlwinm r4, r0, 27, 5, 31        # (Mask: 0xffffffe0)# 0x5404D97E
+	rlwinm r4, r0, 27, 5, 31        # (Mask: 0xffffffe0)| 0x5404D97E
 	nop                             # 0x60000000
 }
 HOOK @ $80689B90                # Address = $(ba + 0x00689B90) [in "buttonProc/[muSelCharTask]/mu_selchar.o" @ $806898C0]
 {
 	lbz r0, 0x5c8(r24)              # 0x881805C8
 	cmpwi r0, 0x0                   # 0x2C000000
-	beq 0xc                         # 0x4182000C
+	beq %END%                       # 0x4182000C
 	lis r12, 0x9019                 # 0x3D809019
 	lbz r0, -0x5f1c(r12)            # 0x880CA0E4
 }
@@ -989,7 +1069,7 @@ HOOK @ $8069A2E0                # Address = $(ba + 0x0069A2E0) [in "incCharColor
 {
 	lbz r27, 0x5c8(r8)              # 0x8B6805C8
 	cmpwi r27, 0x0                  # 0x2C1B0000
-	beq 0xc                         # 0x4182000C
+	beq %END%                       # 0x4182000C
 	lis r12, 0x9019                 # 0x3D809019
 	lbz r27, -0x5f1c(r12)           # 0x8B6CA0E4
 }
@@ -997,14 +1077,14 @@ HOOK @ $8069A3F0                # Address = $(ba + 0x0069A3F0) [in "decCharColor
 {
 	lbz r27, 0x5c8(r8)              # 0x8B6805C8
 	cmpwi r27, 0x0                  # 0x2C1B0000
-	beq 0xc                         # 0x4182000C
+	beq %END%                       # 0x4182000C
 	lis r12, 0x9019                 # 0x3D809019
 	lbz r27, -0x5f1c(r12)           # 0x8B6CA0E4
 }
 HOOK @ $806974D0                # Address = $(ba + 0x006974D0) [in "setCharPic/[muSelCharPlayerArea]/mu_selchar_player_area_o" @ $8069742C]
 {
 	cmpwi r27, 0x0                  # 0x2C1B0000
-	beq 0x10                        # 0x41820010
+	beq %END%                       # 0x41820010
 	lis r12, 0x9019                 # 0x3D809019
 	lbz r12, -0x5f1c(r12)           # 0x898CA0E4
 	cmpwi r12, 0x0                  # 0x2C0C0000
@@ -1013,7 +1093,7 @@ HOOK @ $80684968                # Address = $(ba + 0x00684968) [in "setToGlobal/
 {
 	lbz r0, 0x5c8(r26)              # 0x881A05C8
 	cmpwi r0, 0x0                   # 0x2C000000
-	beq 0xc                         # 0x4182000C
+	beq %END%                       # 0x4182000C
 	lis r12, 0x9019                 # 0x3D809019
 	lbz r0, -0x5f1c(r12)            # 0x880CA0E4
 }
@@ -1022,7 +1102,7 @@ HOOK @ $806D5C28                # Address = $(ba + 0x006D5C28) [in "fixSubcolor/
 	lis r12, 0x9019                 # 0x3D809019
 	lbz r12, -0x5f1b(r12)           # 0x898CA0E5
 	cmpwi r12, 0x1                  # 0x2C0C0001
-	beq 0x8                         # 0x41820008
+	beq %END%                       # 0x41820008
 	stb r0, 0xa(r28)                # 0x981C000A
 }
 HOOK @ $8081F4B8                # Address = $(ba + 0x0081F4B8) [in "startGame/[ftEntry]/ft_entry.o" @ $8081EDC4]
@@ -1031,7 +1111,7 @@ HOOK @ $8081F4B8                # Address = $(ba + 0x0081F4B8) [in "startGame/[f
 	lis r12, 0x9019                 # 0x3D809019
 	lbz r12, -0x5f1b(r12)           # 0x898CA0E5
 	cmpwi r12, 0x1                  # 0x2C0C0001
-	bne 0x70                        # 0x40820070
+	bne loc_0x020                   # 0x40820070
 	mflr r0                         # 0x7C0802A6
 	stw r0, 0x0(r2)                 # 0x90020000
 	stwu r1, -0x80(r1)              # 0x9421FF80
@@ -1039,8 +1119,9 @@ HOOK @ $8081F4B8                # Address = $(ba + 0x0081F4B8) [in "startGame/[f
 	lwz r6, 0x28(r31)               # 0x80DF0028
 	lbz r7, 0xa(r31)                # 0x88FF000A
 	cmpwi r7, 0xff                  # 0x2C0700FF
-	bne 0x8                         # 0x40820008
+	bne loc_0x00E                   # 0x40820008
 	li r7, 0x0                      # 0x38E00000
+loc_0x00E:
 	mulli r7, r7, 0x8               # 0x1CE70008
 	add r7, r31, r7                 # 0x7CFF3A14
 	lwz r3, 0x34(r7)                # 0x80670034
@@ -1059,6 +1140,7 @@ HOOK @ $8081F4B8                # Address = $(ba + 0x0081F4B8) [in "startGame/[f
 	lmw r3, 0x10(r1)                # 0xB8610010
 	lwz r1, 0x0(r1)                 # 0x80210000
 	mtlr r0                         # 0x7C0803A6
+loc_0x020:
 	nop                             # 0x60000000
 }
 HOOK @ $8068EEF4                # Address = $(ba + 0x0068EEF4) [in "setMeleeKind/[muSelCharTask]/mu_selchar_obj.o" @ $8068ED8C]
@@ -1067,10 +1149,11 @@ HOOK @ $8068EEF4                # Address = $(ba + 0x0068EEF4) [in "setMeleeKind
 	lis r12, 0x9019                 # 0x3D809019
 	lbz r12, -0x5f1b(r12)           # 0x898CA0E5
 	cmpwi r12, 0x1                  # 0x2C0C0001
-	bne 0x10                        # 0x40820010
+	bne loc_0x008                   # 0x40820010
 	lis r12, 0x40c0                 # 0x3D8040C0
 	stw r12, 0x0(r2)                # 0x91820000
 	lfs f1, 0x0(r2)                 # 0xC0220000
+loc_0x008:
 	nop                             # 0x60000000
 }
 HOOK @ $8068A494                # Address = $(ba + 0x0068A494) [in "buttonProcInAllArea/[muSelCharTask]/mu_selchar.o" @ $8068A358]
@@ -1081,7 +1164,7 @@ HOOK @ $8068A494                # Address = $(ba + 0x0068A494) [in "buttonProcIn
 	stb r4, 0x5cb(r31)              # 0x989F05CB
 	mr r3, r31                      # 0x7FE3FB78
 }
-HOOK @ $806846E0                # Address = $(ba + 0x006846E0)
+HOOK @ $806846E0                # Address = $(ba + 0x006846E0) [in "setToGlobal/[muSelCharTask]/mu_selchar.o" @ $806846E0]
 {
 	lbz r4, 0x5cb(r3)               # 0x888305CB
 	lis r5, 0x805a                  # 0x3CA0805A
@@ -1091,7 +1174,7 @@ HOOK @ $806846E0                # Address = $(ba + 0x006846E0)
 	stwu r1, -0xf0(r1)              # 0x9421FF10
 	nop                             # 0x60000000
 }
-HOOK @ $80684480                # Address = $(ba + 0x00684480)
+HOOK @ $80684480                # Address = $(ba + 0x00684480) [in "getDefaultRuleFromGlobal/[muSelCharTask]/mu_selchar.o" @ $80684480]
 {
 	lis r4, 0x805a                  # 0x3C80805A
 	lwz r4, 0xe0(r4)                # 0x808400E0
@@ -1123,7 +1206,7 @@ HOOK @ $80686C04                # Address = $(ba + 0x00686C04) [in "initDisp/[mu
 HOOK @ $8068AE24                # Address = $(ba + 0x0068AE24) [in "buttonProcInFaceArea/[muSelCharTask]/mu_selchar.o" @ $8068ADC4]
 {
 	cmpwi r27, 0x28                 # 0x2C1B0028
-	bne 0x1f4                       # 0x408201F4
+	bne loc_0x07E                   # 0x408201F4
 	stwu r1, -0x20(r1)              # 0x9421FFE0
 	mflr r0                         # 0x7C0802A6
 	stw r0, 0x24(r1)                # 0x90010024
@@ -1139,7 +1222,7 @@ HOOK @ $8068AE24                # Address = $(ba + 0x0068AE24) [in "buttonProcIn
 	bctrl                           # 0x4E800421
 	lis r4, 0x8068                  # 0x3C808068
 	lhz r3, 0x57f2(r4)              # 0xA06457F2
-	bl 0x12c                        # 0x4800012D
+	bl loc_0x05C                    # 0x4800012D
 	lis r4, 0x8068                  # 0x3C808068
 	add r4, r4, r3                  # 0x7C841A14
 	lbz r4, 0xe80(r4)               # 0x88840E80
@@ -1165,7 +1248,7 @@ HOOK @ $8068AE24                # Address = $(ba + 0x0068AE24) [in "buttonProcIn
 	ori r12, r12, 0xf8d0            # 0x618CF8D0
 	mtctr r12                       # 0x7D8903A6
 	bctrl                           # 0x4E800421
-	bl 0xc4                         # 0x480000C5
+	bl loc_0x05C                    # 0x480000C5
 	stw r3, 0x1bc(r28)              # 0x907C01BC
 	lis r12, 0x803f                 # 0x3D80803F
 	ori r12, r12, 0x1358            # 0x618C1358
@@ -1196,7 +1279,7 @@ HOOK @ $8068AE24                # Address = $(ba + 0x0068AE24) [in "buttonProcIn
 	mtctr r12                       # 0x7D8903A6
 	bctrl                           # 0x4E800421
 	addi r3, r3, 0x1                # 0x38630001
-	bl 0x94                         # 0x48000095
+	bl loc_0x06F                    # 0x48000095
 	lwz r3, 0xb8(r28)               # 0x807C00B8
 	lis r12, 0x800b                 # 0x3D80800B
 	ori r12, r12, 0x7900            # 0x618C7900
@@ -1205,7 +1288,7 @@ HOOK @ $8068AE24                # Address = $(ba + 0x0068AE24) [in "buttonProcIn
 	lwz r0, 0x3dc(r31)              # 0x801F03DC
 	cmpwi r0, 0x0                   # 0x2C000000
 	lwz r27, 0x1b8(r28)             # 0x837C01B8
-	beq 0xac                        # 0x418200AC
+	beq loc_0x07E                   # 0x418200AC
 	lwz r4, 0x1b8(r28)              # 0x809C01B8
 	mr r3, r31                      # 0x7FE3FB78
 	lwz r5, 0x1bc(r28)              # 0x80BC01BC
@@ -1213,7 +1296,8 @@ HOOK @ $8068AE24                # Address = $(ba + 0x0068AE24) [in "buttonProcIn
 	ori r12, r12, 0x2498            # 0x618C2498
 	mtctr r12                       # 0x7D8903A6
 	bctrl                           # 0x4E800421
-	b 0x8c                          # 0x4800008C
+	b loc_0x07E                     # 0x4800008C
+loc_0x05C:
 	stwu r1, -0x20(r1)              # 0x9421FFE0
 	mflr r0                         # 0x7C0802A6
 	stw r0, 0x24(r1)                # 0x90010024
@@ -1233,6 +1317,7 @@ HOOK @ $8068AE24                # Address = $(ba + 0x0068AE24) [in "buttonProcIn
 	mtlr r0                         # 0x7C0803A6
 	addi r1, r1, 0x20               # 0x38210020
 	blr                             # 0x4E800020
+loc_0x06F:
 	stwu r1, -0x20(r1)              # 0x9421FFE0
 	mflr r0                         # 0x7C0802A6
 	stw r0, 0x24(r1)                # 0x90010024
@@ -1248,6 +1333,7 @@ HOOK @ $8068AE24                # Address = $(ba + 0x0068AE24) [in "buttonProcIn
 	mtlr r0                         # 0x7C0803A6
 	addi r1, r1, 0x20               # 0x38210020
 	blr                             # 0x4E800020
+loc_0x07E:
 	mr r3, r29                      # 0x7FA3EB78
 	nop                             # 0x60000000
 }
@@ -1258,11 +1344,12 @@ Franklin Badge SFX Modifier V2 [Magus, ds22]
 HOOK @ $80840824                # Address = $(ba + 0x00840824) [in "notifyEventCollisionReflectorCheck/[Fighter]/fighter.o" @ $808407FC]
 {
 	cmpwi r5, 0x1a                  # 0x2C05001A
-	blt 0x14                        # 0x41800014
+	blt loc_0x006                   # 0x41800014
 	cmpwi r5, 0x1d                  # 0x2C05001D
-	bgt 0xc                         # 0x4181000C
+	bgt loc_0x006                   # 0x4181000C
 	li r4, 0x1f86                   # 0x38801F86
-	b 0x8                           # 0x48000008
+	b %END%                         # 0x48000008
+loc_0x006:
 	li r4, 0xb                      # 0x3880000B
 }
 
@@ -1272,9 +1359,10 @@ Team Coloured Shields V2 [ds22]
 HOOK @ $8081DEEC                # Address = $(ba + 0x0081DEEC) [in "init/[ftEntry]/ft_entry.o" @ $8081DCB8]
 {
 	cmpwi r23, 0x2                  # 0x2C170002
-	beq 0xc                         # 0x4182000C
+	beq loc_0x004                   # 0x4182000C
 	mr r4, r23                      # 0x7EE4BB78
-	b 0x8                           # 0x48000008
+	b %END%                         # 0x48000008
+loc_0x004:
 	li r4, 0x3                      # 0x38800003
 }
 * 0481DEF4 7EE4BB78             # 32-Bit Write @ $(ba + 0x0081DEF4):  0x7EE4BB78
@@ -1291,9 +1379,10 @@ HOOK @ $806D5BE0                # Address = $(ba + 0x006D5BE0) [in "fixSubcolor/
 HOOK @ $806D5C08                # Address = $(ba + 0x006D5C08) [in "fixSubcolor/[scMelee]/sc_melee.o" @ $806D5B98]
 {
 	cmpwi r3, 0xd                   # 0x2C03000D
-	bne 0xc                         # 0x4082000C
+	bne loc_0x004                   # 0x4082000C
 	cmpwi r31, 0xd                  # 0x2C1F000D
-	beq 0x8                         # 0x41820008
+	beq %END%                       # 0x41820008
+loc_0x004:
 	cmpw r12, r11                   # 0x7C0C5800
 }
 HOOK @ $80952B00                # Address = $(ba + 0x00952B00) [in "exchangeGmCharacterKindToMuCharKind/[stOperatorRule]/st_o" @ $80952AE0]
@@ -1336,8 +1425,9 @@ HOOK @ $8081DF6C                # Address = $(ba + 0x0081DF6C) [in "init/[ftEntr
 {
 	li r0, 0x5c                     # 0x3800005C
 	cmpwi r4, 0x2d                  # 0x2C04002D
-	bne+ 0x8                        # 0x40A20008
+	bne+ loc_0x004                  # 0x40A20008
 	li r0, 0x7c                     # 0x3800007C
+loc_0x004:
 	nop                             # 0x60000000
 }
 
@@ -1347,42 +1437,51 @@ Independent Pokemon Engine HTP, Classic & MMS [ds22]
 HOOK @ $806DDDF4                # Address = $(ba + 0x006DDDF4) [in "demoSetup/[sqTitle]/sq_title.o" @ $806DDBE0]
 {
 	cmpwi r3, 0x1d                  # 0x2C03001D
-	bne+ 0x8                        # 0x40A20008
+	bne+ loc_0x003                  # 0x40A20008
 	li r3, 0x1e                     # 0x3860001E
+loc_0x003:
 	cmpwi r3, 0x1f                  # 0x2C03001F
-	bne+ 0x8                        # 0x40A20008
+	bne+ loc_0x006                  # 0x40A20008
 	li r3, 0x20                     # 0x38600020
+loc_0x006:
 	cmpwi r3, 0x21                  # 0x2C030021
-	bne+ 0x8                        # 0x40A20008
+	bne+ loc_0x009                  # 0x40A20008
 	li r3, 0x22                     # 0x38600022
+loc_0x009:
 	stb r3, 0x98(r29)               # 0x987D0098
 	nop                             # 0x60000000
 }
 HOOK @ $806E1178                # Address = $(ba + 0x006E1178) [in "setStageSetting/[sqSingleSimple]/sq_single_simple.o" @ $806E0BC8]
 {
 	cmpwi r18, 0x1d                 # 0x2C12001D
-	bne+ 0x8                        # 0x40A20008
+	bne+ loc_0x003                  # 0x40A20008
 	li r18, 0x1e                    # 0x3A40001E
+loc_0x003:
 	cmpwi r18, 0x1f                 # 0x2C12001F
-	bne+ 0x8                        # 0x40A20008
+	bne+ loc_0x006                  # 0x40A20008
 	li r18, 0x20                    # 0x3A400020
+loc_0x006:
 	cmpwi r18, 0x21                 # 0x2C120021
-	bne+ 0x8                        # 0x40A20008
+	bne+ loc_0x009                  # 0x40A20008
 	li r18, 0x22                    # 0x3A400022
+loc_0x009:
 	stb r18, 0x98(r21)              # 0x9A550098
 	nop                             # 0x60000000
 }
 HOOK @ $8095E184                # Address = $(ba + 0x0095E184) [in "putCorpsPutMember/[stOperatorRuleKumite]/st_operator_rule" @ $8095E138]
 {
 	cmpwi r31, 0x1d                 # 0x2C1F001D
-	bne+ 0x8                        # 0x40A20008
+	bne+ loc_0x003                  # 0x40A20008
 	li r31, 0x1e                    # 0x3BE0001E
+loc_0x003:
 	cmpwi r31, 0x1f                 # 0x2C1F001F
-	bne+ 0x8                        # 0x40A20008
+	bne+ loc_0x006                  # 0x40A20008
 	li r31, 0x20                    # 0x3BE00020
+loc_0x006:
 	cmpwi r31, 0x21                 # 0x2C1F0021
-	bne+ 0x8                        # 0x40A20008
+	bne+ loc_0x009                  # 0x40A20008
 	li r31, 0x22                    # 0x3BE00022
+loc_0x009:
 	stb r31, 0x0(r3)                # 0x9BE30000
 	nop                             # 0x60000000
 }
@@ -1400,18 +1499,18 @@ Aura Sphere Cancel [ds22]
 HOOK @ $80AA658C                # Address = $(ba + 0x00AA658C) [in "exitStatus/[ftLucarioStatusUniqProcessSpecialN]/ft_lucari" @ $80AA6408]
 {
 	cmpwi r26, 0x1a                 # 0x2C1A001A
-	beq 0x30                        # 0x41820030
+	beq %END%                       # 0x41820030
 	cmpwi r26, 0x1f                 # 0x2C1A001F
-	beq 0x28                        # 0x41820028
+	beq %END%                       # 0x41820028
 	cmpwi r26, 0x20                 # 0x2C1A0020
-	beq 0x20                        # 0x41820020
+	beq %END%                       # 0x41820020
 	cmpwi r26, 0x21                 # 0x2C1A0021
-	beq 0x18                        # 0x41820018
+	beq %END%                       # 0x41820018
 	cmpwi r26, 0x118                # 0x2C1A0118
-	beq 0x10                        # 0x41820010
+	beq %END%                       # 0x41820010
 	cmpwi r26, 0x11e                # 0x2C1A011E
-	beq 0x8                         # 0x41820008
-	bne 0x4                         # 0x40820004
+	beq %END%                       # 0x41820008
+	bne %END%                       # 0x40820004
 }
 * 04AA6590 40820040             # 32-Bit Write @ $(ba + 0x00AA6590):  0x40820040
 
@@ -1429,10 +1528,12 @@ HOOK @ $808E6FA0                # Address = $(ba + 0x008E6FA0) [in "getSpeed/[wn
 {
 	lwz r12, 0x68(r3)               # 0x81830068
 	cmpwi r12, 0x2329               # 0x2C0C2329
-	bne 0xc                         # 0x4082000C
+	bne loc_0x005                   # 0x4082000C
 	lfs f0, 0x6c(r3)                # 0xC003006C
-	b 0x8                           # 0x48000008
+	b loc_0x006                     # 0x48000008
+loc_0x005:
 	lfs f0, -0x6aa0(r4)             # 0xC0049560
+loc_0x006:
 	nop                             # 0x60000000
 }
 

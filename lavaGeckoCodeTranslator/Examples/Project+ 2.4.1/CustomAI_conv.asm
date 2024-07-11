@@ -169,59 +169,68 @@ Custom AI Function Loader [Magus]
 HOOK @ $8091E108                # Address = $(ba + 0x0091E108) [in "get_script_value/[aiAct]/ai_act.o" @ $8091DFC4]
 {
 	cmplwi r0, 0x2e                 # 0x2800002E
-	ble+ 0x144                      # 0x40A10144
-	rlwinm r7, r31, 24, 31, 31      # (Mask: 0x00000100)# 0x57E7C7FE
+	ble+ loc_0x052                  # 0x40A10144
+	rlwinm r7, r31, 24, 31, 31      # (Mask: 0x00000100)| 0x57E7C7FE
 	lis r12, 0x8058                 # 0x3D808058
 	ori r12, r12, 0x47c             # 0x618C047C
 	subi r5, r31, 0x102e            # 0x38BFEFD2
 	cmpwi r7, 0x1                   # 0x2C070001
-	bne+ 0x8                        # 0x40A20008
+	bne+ loc_0x009                  # 0x40A20008
 	subi r5, r5, 0x100              # 0x38A5FF00
-	rlwinm r5, r5, 2, 0, 29         # (Mask: 0x3fffffff)# 0x54A5103A
+loc_0x009:
+	rlwinm r5, r5, 2, 0, 29         # (Mask: 0x3fffffff)| 0x54A5103A
 	lwz r6, 0x0(r12)                # 0x80CC0000
 	cmpw r5, r6                     # 0x7C053000
-	bgt 0x110                       # 0x41810110
+	bgt loc_0x050                   # 0x41810110
 	lwzx r12, r12, r5               # 0x7D8C282E
 	cmpwi r12, 0x0                  # 0x2C0C0000
-	beq 0x104                       # 0x41820104
+	beq loc_0x050                   # 0x41820104
 	lis r5, 0x8076                  # 0x3CA08076
 	ori r5, r5, 0x4e9c              # 0x60A54E9C
 	mr r11, r1                      # 0x7C2B0B78
-	b 0x8                           # 0x48000008
+	b loc_0x015                     # 0x48000008
+loc_0x014:
 	lwz r11, 0x0(r11)               # 0x816B0000
+loc_0x015:
 	lwz r10, 0x4(r11)               # 0x814B0004
 	cmpw r10, r5                    # 0x7C0A2800
-	bne+ -0xc                       # 0x4082FFF4
+	bne+ loc_0x014                  # 0x4082FFF4
 	lwz r5, 0x20(r11)               # 0x80AB0020
 	lwz r5, 0x60(r5)                # 0x80A50060
 	cmpwi r7, 0x1                   # 0x2C070001
-	beq 0xc                         # 0x4182000C
+	beq loc_0x01E                   # 0x4182000C
 	lwz r3, 0x74(r30)               # 0x807E0074
-	b 0x64                          # 0x48000064
+	b loc_0x036                     # 0x48000064
+loc_0x01E:
 	lwz r4, 0x74(r30)               # 0x809E0074
 	lwz r6, 0x4c(r3)                # 0x80C3004C
 	cmpwi r6, 0x0                   # 0x2C060000
-	beq 0xbc                        # 0x418200BC
+	beq loc_0x050                   # 0x418200BC
 	addi r6, r6, 0x140              # 0x38C60140
 	lwz r0, 0xac(r3)                # 0x800300AC
 	cmpwi r0, 0x10                  # 0x2C000010
-	bne+ 0x8                        # 0x40A20008
+	bne+ loc_0x027                  # 0x40A20008
 	addi r6, r6, 0x280              # 0x38C60280
+loc_0x027:
 	lis r11, 0x80b8                 # 0x3D6080B8
 	lwz r11, 0x7c28(r11)            # 0x816B7C28
 	lwz r11, 0x154(r11)             # 0x816B0154
 	lwz r11, 0x0(r11)               # 0x816B0000
-	b 0x8                           # 0x48000008
+	b loc_0x02D                     # 0x48000008
+loc_0x02C:
 	addi r11, r11, 0x244            # 0x396B0244
+loc_0x02D:
 	lwz r10, 0x2c(r11)              # 0x814B002C
 	cmpw r10, r6                    # 0x7C0A3000
-	bne+ -0xc                       # 0x4082FFF4
+	bne+ loc_0x02C                  # 0x4082FFF4
 	cmpwi r0, 0x10                  # 0x2C000010
-	bne+ 0x8                        # 0x40A20008
+	bne+ loc_0x033                  # 0x40A20008
 	addi r11, r11, 0x8              # 0x396B0008
+loc_0x033:
 	mr r6, r5                       # 0x7CA62B78
 	lwz r5, 0x34(r11)               # 0x80AB0034
 	lwz r5, 0x60(r5)                # 0x80A50060
+loc_0x036:
 	stfd f0, 0x20(r2)               # 0xD8020020
 	stfd f2, 0x28(r2)               # 0xD8420028
 	stfd f3, 0x30(r2)               # 0xD8620030
@@ -231,7 +240,7 @@ HOOK @ $8091E108                # Address = $(ba + 0x0091E108) [in "get_script_v
 	mtctr r12                       # 0x7D8903A6
 	bctrl                           # 0x4E800421
 	cmpwi r10, 0x1                  # 0x2C0A0001
-	bne 0x20                        # 0x40820020
+	bne loc_0x047                   # 0x40820020
 	lis r11, 0x4330                 # 0x3D604330
 	stw r11, 0x10(r2)               # 0x91620010
 	lfd f0, -0x7b90(r2)             # 0xC8028470
@@ -239,6 +248,7 @@ HOOK @ $8091E108                # Address = $(ba + 0x0091E108) [in "get_script_v
 	stw r12, 0x14(r2)               # 0x91820014
 	lfd f1, 0x10(r2)                # 0xC8220010
 	fsub f1, f1, f0                 # 0xFC210028
+loc_0x047:
 	lfd f0, 0x20(r2)                # 0xC8020020
 	lfd f2, 0x28(r2)                # 0xC8420028
 	lfd f3, 0x30(r2)                # 0xC8620030
@@ -248,8 +258,10 @@ HOOK @ $8091E108                # Address = $(ba + 0x0091E108) [in "get_script_v
 	ori r12, r12, 0xe440            # 0x618CE440
 	mtctr r12                       # 0x7D8903A6
 	bctr                            # 0x4E800420
+loc_0x050:
 	li r0, 0x2f                     # 0x3800002F
 	cmplwi r0, 0x2e                 # 0x2800002E
+loc_0x052:
 	nop                             # 0x60000000
 }
 
@@ -426,17 +438,17 @@ Custom AI Requirement Loader[Bero]
 HOOK @ $8091E554                # Address = $(ba + 0x0091E554) [in "if_chk/[aiAct]/ai_act.o" @ $8091E4CC]
 {
 	cmplwi r0, 0x1f                 # 0x2800001F
-	ble 0x54                        # 0x40810054
+	ble loc_0x016                   # 0x40810054
 	lis r3, 0x8058                  # 0x3C608058
 	ori r3, r3, 0x2e6c              # 0x60632E6C
 	lwz r3, 0x0(r3)                 # 0x80630000
 	mr r4, r0                       # 0x7C040378
 	subi r4, r4, 0x20               # 0x3884FFE0
 	cmplw r4, r3                    # 0x7C041840
-	bge 0x30                        # 0x40800030
+	bge loc_0x014                   # 0x40800030
 	lis r3, 0x8058                  # 0x3C608058
 	ori r3, r3, 0x2e70              # 0x60632E70
-	rlwinm r4, r4, 2, 0, 29         # (Mask: 0x3fffffff)# 0x5484103A
+	rlwinm r4, r4, 2, 0, 29         # (Mask: 0x3fffffff)| 0x5484103A
 	add r3, r3, r4                  # 0x7C632214
 	lwz r3, 0x0(r3)                 # 0x80630000
 	mtctr r3                        # 0x7C6903A6
@@ -445,8 +457,10 @@ HOOK @ $8091E554                # Address = $(ba + 0x0091E554) [in "if_chk/[aiAc
 	ori r3, r3, 0xed20              # 0x6063ED20
 	mtctr r3                        # 0x7C6903A6
 	bctr                            # 0x4E800420
+loc_0x014:
 	li r0, 0x20                     # 0x38000020
 	cmplwi r0, 0x1f                 # 0x2800001F
+loc_0x016:
 	nop                             # 0x60000000
 }
 
@@ -485,16 +499,16 @@ Custom AI Command Loader[Bero]
 HOOK @ $80917454                # Address = $(ba + 0x00917454) [in "update/[aiAct]/ai_act.o" @ $80917190]
 {
 	cmplwi r4, 0x32                 # 0x28040032
-	ble 0x4c                        # 0x4081004C
+	ble loc_0x014                   # 0x4081004C
 	subi r4, r4, 0x33               # 0x3884FFCD
 	lis r3, 0x8058                  # 0x3C608058
 	ori r3, r3, 0x6ffc              # 0x60636FFC
 	lwz r3, 0x0(r3)                 # 0x80630000
 	cmpw r4, r3                     # 0x7C041800
-	bge 0x2c                        # 0x4080002C
+	bge loc_0x012                   # 0x4080002C
 	lis r3, 0x8058                  # 0x3C608058
 	ori r3, r3, 0x7000              # 0x60637000
-	rlwinm r4, r4, 2, 0, 29         # (Mask: 0x3fffffff)# 0x5484103A
+	rlwinm r4, r4, 2, 0, 29         # (Mask: 0x3fffffff)| 0x5484103A
 	lwzx r3, r3, r4                 # 0x7C63202E
 	mtctr r3                        # 0x7C6903A6
 	bctrl                           # 0x4E800421
@@ -502,8 +516,10 @@ HOOK @ $80917454                # Address = $(ba + 0x00917454) [in "update/[aiAc
 	ori r3, r3, 0x81c4              # 0x606381C4
 	mtctr r3                        # 0x7C6903A6
 	bctr                            # 0x4E800420
+loc_0x012:
 	li r4, 0x33                     # 0x38800033
 	cmplwi r4, 0x32                 # 0x28040032
+loc_0x014:
 	nop                             # 0x60000000
 }
 
@@ -565,14 +581,16 @@ HOOK @ $809091E4                # Address = $(ba + 0x009091E4) [in "md_down/[aiI
 	mr r28, r3                      # 0x7C7C1B78
 	lbz r4, 0x1ba(r28)              # 0x889C01BA
 	cmpwi r4, 0x6                   # 0x2C040006
-	beq 0x1c                        # 0x4182001C
+	beq loc_0x00A                   # 0x4182001C
 	cmpwi r4, 0x7                   # 0x2C040007
-	beq 0x14                        # 0x41820014
+	beq loc_0x00A                   # 0x41820014
 	cmpwi r4, 0x4                   # 0x2C040004
-	bne 0xa4                        # 0x408200A4
+	bne loc_0x030                   # 0x408200A4
 	li r4, 0x2070                   # 0x38802070
-	b 0x8                           # 0x48000008
+	b loc_0x00B                     # 0x48000008
+loc_0x00A:
 	li r4, 0x2060                   # 0x38802060
+loc_0x00B:
 	lwz r3, 0x44(r24)               # 0x80780044
 	li r5, 0xffff                   # 0x38A0FFFF
 	stw r5, 0x64(r1)                # 0x90A10064
@@ -586,7 +604,7 @@ HOOK @ $809091E4                # Address = $(ba + 0x009091E4) [in "md_down/[aiI
 	lwz r3, 0x44(r24)               # 0x80780044
 	lwz r3, 0x64(r3)                # 0x80630064
 	cmpwi r3, 0x0                   # 0x2C030000
-	beq 0x34                        # 0x41820034
+	beq loc_0x025                   # 0x41820034
 	mr r3, r24                      # 0x7F03C378
 	li r4, 0x0                      # 0x38800000
 	li r5, 0x0                      # 0x38A00000
@@ -599,6 +617,7 @@ HOOK @ $809091E4                # Address = $(ba + 0x009091E4) [in "md_down/[aiI
 	ori r3, r3, 0x9d18              # 0x60639D18
 	mtctr r3                        # 0x7C6903A6
 	bctr                            # 0x4E800420
+loc_0x025:
 	lwz r3, 0x44(r24)               # 0x80780044
 	li r4, 0x0                      # 0x38800000
 	li r5, 0xffff                   # 0x38A0FFFF
@@ -610,6 +629,7 @@ HOOK @ $809091E4                # Address = $(ba + 0x009091E4) [in "md_down/[aiI
 	ori r8, r8, 0x8554              # 0x61088554
 	mtctr r8                        # 0x7D0903A6
 	bctrl                           # 0x4E800421
+loc_0x030:
 	nop                             # 0x60000000
 }
 

@@ -6,40 +6,44 @@ Credit for these codes goes to Y.S., and Phantom Wings for Porting them (end of 
 HOOK @ $810F1F3C                # Address = $(po + 0x00000000)
 {
 	stw r0, 0x58c(r31)              # 0x901F058C
-	rlwinm r0, r0, 16, 16, 31       # (Mask: 0xffff0000)# 0x5400843E
+	rlwinm r0, r0, 16, 16, 31       # (Mask: 0xffff0000)| 0x5400843E
 	stw r0, 0x70(r2)                # 0x90020070
 }
 HOOK @ $8077F780                # Address = $(ba + 0x0077F780) [in "changeStatusRequest/[soStatusModuleImpl]/so_status_module" @ $8077F5A8]
 {
 	subf r6, r31, r30               # 0x7CDFF050
 	cmpwi r6, 0x414c                # 0x2C06414C
-	bne 0x6c                        # 0x4082006C
+	bne loc_0x01D                   # 0x4082006C
 	cmpwi r28, 0x2                  # 0x2C1C0002
-	ble 0x64                        # 0x40810064
+	ble loc_0x01D                   # 0x40810064
 	addi r12, r2, 0x74              # 0x39820074
 	lwz r4, 0x38(r30)               # 0x809E0038
 	lhz r7, 0x0(r12)                # 0xA0EC0000
 	cmpw r4, r7                     # 0x7C043800
-	bgt 0x50                        # 0x41810050
+	bgt loc_0x01D                   # 0x41810050
 	lhz r7, 0x2(r12)                # 0xA0EC0002
 	cmpw r28, r7                    # 0x7C1C3800
-	beq 0x44                        # 0x41820044
+	beq loc_0x01D                   # 0x41820044
 	lis r6, 0x804e                  # 0x3CC0804E
 	lhz r6, -0x1b40(r6)             # 0xA0C6E4C0
 	lha r7, 0x4(r12)                # 0xA8EC0004
 	cmpwi r7, 0x0                   # 0x2C070000
-	beq 0x30                        # 0x41820030
+	beq loc_0x01D                   # 0x41820030
+loc_0x012:
 	lha r7, 0x4(r12)                # 0xA8EC0004
 	cmpw r6, r7                     # 0x7C063800
-	bne 0xc                         # 0x4082000C
+	bne loc_0x017                   # 0x4082000C
 	lhz r28, 0x6(r12)               # 0xA38C0006
-	b 0x1c                          # 0x4800001C
+	b loc_0x01D                     # 0x4800001C
+loc_0x017:
 	cmpwi r7, -0x1                  # 0x2C07FFFF
-	bne 0xc                         # 0x4082000C
+	bne loc_0x01B                   # 0x4082000C
 	lha r28, 0x6(r12)               # 0xAB8C0006
-	b 0xc                           # 0x4800000C
+	b loc_0x01D                     # 0x4800000C
+loc_0x01B:
 	addi r12, r12, 0x4              # 0x398C0004
-	b -0x28                         # 0x4BFFFFD8
+	b loc_0x012                     # 0x4BFFFFD8
+loc_0x01D:
 	stw r28, 0x38(r30)              # 0x939E0038
 	nop                             # 0x60000000
 }
