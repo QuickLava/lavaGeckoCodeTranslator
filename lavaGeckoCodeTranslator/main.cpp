@@ -2,7 +2,7 @@
 #include "lavaGeckoCodeTranslator.h"
 #include "whereami/whereami.h"
 
-const std::string version = "v1.0.6a";
+const std::string version = "v1.0.8";
 const std::string suffixString = "_conv";
 const std::string localMapFilePath = "./symbols.map";
 
